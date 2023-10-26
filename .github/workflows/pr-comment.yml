@@ -12,8 +12,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  run-test:
-    name: run test
+  run-pr-comment:
     runs-on: ubuntu-latest
     if:
       github.event.issue.pull_request

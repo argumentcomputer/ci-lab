@@ -1,10 +1,6 @@
 name: Test access to secrets
 
 on: 
-  workflow_dispatch:
-  pull_request_target:
-    types: [opened, synchronize, reopened, ready_for_review]
-    branches: [dev]
   merge_group:
 
 env:
@@ -16,7 +12,7 @@ concurrency:
 
 jobs:
   assert-private-key:
-    name: Check private key exists
+    if: github.event_name != 'pull_request' || github.event.action == 'enqueued'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/github-script@v6
