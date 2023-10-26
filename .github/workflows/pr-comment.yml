@@ -20,20 +20,20 @@ jobs:
       && github.event.issue.state == 'open'
       && contains(github.event.comment.body, '!test')
       && (github.event.comment.author_association == 'MEMBER' || github.event.comment.author_association == 'OWNER')
-  steps:
-    - uses: xt0rted/pull-request-comment-branch@v2
-      id: comment-branch
-    - uses: actions/checkout@v4
-    - name: Checkout PR branch
-      run: gh pr checkout ${{ github.event.issue.number }}
-      env:
-        # TODO: Remove if not needed
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-    - name: Check private key exists
-      # Potential alternative: https://github.com/myrotvorets/set-commit-status-action
-      uses: actions/github-script@v6
-      with:
-        script: |
-          if ("$PRIVATE_KEY" == "") {
-            core.setFailed('Failed to access PRIVATE_KEY secret')
-          }
+    steps:
+      - uses: xt0rted/pull-request-comment-branch@v2
+        id: comment-branch
+      - uses: actions/checkout@v4
+      - name: Checkout PR branch
+        run: gh pr checkout ${{ github.event.issue.number }}
+        env:
+          # TODO: Remove if not needed
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Check private key exists
+        # Potential alternative: https://github.com/myrotvorets/set-commit-status-action
+        uses: actions/github-script@v6
+        with:
+          script: |
+            if ("$PRIVATE_KEY" == "") {
+              core.setFailed('Failed to access PRIVATE_KEY secret')
+            }
