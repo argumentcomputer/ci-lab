@@ -1,0 +1,17 @@
+name: test
+
+on: [workflow_dispatch, pull_request_target, merge_group]
+
+env:
+  PRIVATE_KEY: ${{secrets.PRIVATE_KEY}}
+
+jobs:
+  assert-private-key:
+    name: Check private key exists
+    runs-on: ubuntu-latest
+    steps:
+      - if: $PRIVATE_KEY == ""
+        uses: actions/github-script@v6
+        with:
+          script: |
+            core.setFailed('Failed to access PRIVATE_KEY secret')
