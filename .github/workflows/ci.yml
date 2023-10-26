@@ -2,10 +2,10 @@ name: Test access to secrets
 
 on: 
   workflow_dispatch:
-  merge_group:
   pull_request_target:
     types: [opened, synchronize, reopened, ready_for_review]
     branches: [dev]
+  merge_group:
 
 env:
   PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
@@ -15,9 +15,9 @@ jobs:
     name: Check private key exists
     runs-on: ubuntu-latest
     steps:
-        - uses: actions/github-script@v6
-          with:
-            script: |
-              if ("$PRIVATE_KEY" = "") {
-                core.setFailed('Failed to access PRIVATE_KEY secret')
-              }
+      - uses: actions/github-script@v6
+        with:
+          script: |
+            if ("$PRIVATE_KEY" == "") {
+              core.setFailed('Failed to access PRIVATE_KEY secret')
+            }
