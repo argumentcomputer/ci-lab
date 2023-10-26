@@ -1,16 +1,21 @@
 name: test
 
-on: [workflow_dispatch, pull_request_target, merge_group]
+on: 
+  workflow_dispatch:
+  merge_group:
+  pull_request_target:
+    types: [opened, synchronize, reopened, ready_for_review]
+    branches: [dev]
 
 env:
-  PRIVATE_KEY: ${{secrets.PRIVATE_KEY}}
+  key: ${{ secrets.PRIVATE_KEY }}
 
 jobs:
   assert-private-key:
     name: Check private key exists
     runs-on: ubuntu-latest
     steps:
-      - if: $PRIVATE_KEY == ""
+      - if: {{ env.key == "" }}
         uses: actions/github-script@v6
         with:
           script: |
