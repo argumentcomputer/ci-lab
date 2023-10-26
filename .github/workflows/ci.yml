@@ -1,22 +1,23 @@
 name: test
 
 on: 
-  workflow_dispatch:
+  #workflow_dispatch:
   merge_group:
   pull_request_target:
     types: [opened, synchronize, reopened, ready_for_review]
     branches: [dev]
 
 env:
-  key: ${{ secrets.PRIVATE_KEY }}
+  PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
 
 jobs:
   assert-private-key:
     name: Check private key exists
     runs-on: ubuntu-latest
     steps:
-      - if: {{ env.key == "" }}
         uses: actions/github-script@v6
         with:
           script: |
-            core.setFailed('Failed to access PRIVATE_KEY secret')
+            if [ "$PRIVATE_KEY" == "" ]; then
+              core.setFailed('Failed to access PRIVATE_KEY secret')
+            fi
