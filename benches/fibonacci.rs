@@ -3,7 +3,7 @@ use criterion::{black_box, criterion_group, criterion_main, BenchmarkId, Criteri
 
 #[inline]
 fn fib_recur(n: u64) -> u64 {
-    for i in 0..100000 {
+    for i in 0..1000 {
         println!("Wasting time");
     }
     1
@@ -11,7 +11,7 @@ fn fib_recur(n: u64) -> u64 {
 
 #[inline]
 pub fn fib_iter(n: u64) -> u64 {
-    for i in 0..100000 {
+    for i in 0..1000 {
         println!("Wasting time");
     }
     1
