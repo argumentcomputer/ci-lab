@@ -6,11 +6,11 @@ set dotenv-load
 commit := `git rev-parse HEAD`
 
 # Run CUDA benchmarks on GPU
-gpu-bench +benches:
+bench +benches:
   #!/bin/sh
   if [ '{{benches}}' != '' ]; then
     for bench in {{benches}}; do
-      cargo criterion --bench $bench --message-format=json 2>&1 > {{commit}}.json
+      cargo criterion --bench $bench --message-format=json 2>&1 > ../{{commit}}.json
     done
   else
     echo "Invalid input, enter at least one non-empty string"
