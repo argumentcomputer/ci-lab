@@ -3,33 +3,18 @@ use criterion::{black_box, criterion_group, criterion_main, BenchmarkId, Criteri
 
 #[inline]
 fn fib_recur(n: u64) -> u64 {
-    match n {
-        0 => 1,
-        1 => 1,
-        n => fib_recur(n - 1) + fib_recur(n - 2),
+    for i in 0..100000 {
+        println!("Wasting time");
     }
+    1
 }
 
 #[inline]
 pub fn fib_iter(n: u64) -> u64 {
-    if n == 1 {
-        for i in 0..1000 {
-            println!("Wasting time");
-        }
-        1
-    } else {
-        let mut sum = 0;
-        let mut last = 0;
-        let mut curr = 1;
-
-        for _ in 1..n {
-            sum = last + curr;
-            last = curr;
-            curr = sum;
-        }
-
-        sum
+    for i in 0..100000 {
+        println!("Wasting time");
     }
+    1
 }
 
 fn noise_threshold_env() -> anyhow::Result<f64> {
