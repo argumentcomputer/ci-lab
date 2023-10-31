@@ -13,6 +13,7 @@ fn fib_recur(n: u64) -> u64 {
 #[inline]
 pub fn fib_iter(n: u64) -> u64 {
     if n == 1 {
+        std::thread::sleep(std::time::Duration::from_secs(5));
         1
     } else {
         let mut sum = 0;
