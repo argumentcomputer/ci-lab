@@ -61,7 +61,7 @@ jobs:
       - name: Load env vars
         uses: xom9ikk/dotenv@v2
         with:
-          path: benches/bench.env
+          path: benches
       # Run the comparative benchmark and comment output on the PR
       - uses: boa-dev/criterion-compare-action@v3
         with:
