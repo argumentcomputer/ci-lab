@@ -1,71 +1,71 @@
-name: PR comment test
-
+# Creates a PR benchmark comment with a comparison to master
+name: Benchmark pull requests
 on:
   issue_comment:
     types: [created]
+
+env:
+  CARGO_TERM_COLOR: always
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
   cancel-in-progress: true
 
 jobs:
-  test-secret:
-    name: Test access to secrets in a fork
+  cpu-benchmark:
+    name: run fibonacci benchmark
     runs-on: ubuntu-latest
     if:
       github.event.issue.pull_request
       && github.event.issue.state == 'open'
-      && contains(github.event.comment.body, '!test')
+      && contains(github.event.comment.body, '!benchmark')
       && (github.event.comment.author_association == 'MEMBER' || github.event.comment.author_association == 'OWNER')
     steps:
-      - uses: xt0rted/pull-request-comment-branch@v2
-        id: comment-branch
       - uses: actions/checkout@v4
       - name: Checkout PR branch
         run: gh pr checkout $PR_NUMBER
         env:
           GH_TOKEN: ${{ github.token }}
           PR_NUMBER: ${{ github.event.issue.number }}
-      - name: Check private key exists
-        uses: actions/github-script@v6
-        with:
-          script: |
-            if ("${{ secrets.PRIVATE_KEY }}" != "beep boop") {
-              core.setFailed('Failed to access PRIVATE_KEY secret')
-            }
-      - name: Get PR number
-        run: echo ${{ github.event.issue.number }}
-      - name: Comment on successful run
-        uses: peter-evans/create-or-update-comment@v3
-        with: 
-          issue-number: ${{ github.event.issue.number }}
-          body: |
-            `!test` action succeeded! :rocket:
-
-            https://github.com/lurk-lab/ci-lab/actions/runs/${{ github.run_id }}
-
-  test-bench:
-    name: Run benchmarks
-    runs-on: ubuntu-latest
-    if:
-      github.event.issue.pull_request
-      && github.event.issue.state == 'open'
-      && contains(github.event.comment.body, '!bench')
-      && (github.event.comment.author_association == 'MEMBER' || github.event.comment.author_association == 'OWNER')
-    steps:
-      #- uses: xt0rted/pull-request-comment-branch@v2
-      #  id: comment-branch
-      - uses: actions/checkout@v4
-      - run: echo ${{ github.ref_name }}
-      - name: Checkout PR branch
-        run: gh pr checkout $PR_NUMBER
-        env:
-          GH_TOKEN: ${{ github.token }}
-          PR_NUMBER: ${{ github.event.issue.number }}
+      # Install dependencies
+      - name: Install dependencies
+        run: sudo apt-get install -y pkg-config libssl-dev
       - uses: actions-rs/toolchain@v1
       - uses: Swatinem/rust-cache@v2
+      # Run the comparative benchmark and comment output on the PR
       - uses: boa-dev/criterion-compare-action@v3
         with:
+          # Optional. Compare only this benchmark target
+          benchName: "fibonacci"
+          # Needed. The name of the branch to compare with
+          branchName: ${{ github.ref_name }}
+
+  gpu-benchmark:
+    name: run fibonacci benchmark on GPU
+    runs-on: ubuntu-latest
+    if:
+      github.event.issue.pull_request
+      && github.event.issue.state == 'open'
+      && contains(github.event.comment.body, '!gpu-benchmark')
+      && (github.event.comment.author_association == 'MEMBER' || github.event.comment.author_association == 'OWNER')
+    steps:
+      - uses: actions/checkout@v4
+      - name: Checkout PR branch
+        run: gh pr checkout $PR_NUMBER
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.issue.number }}
+      # Install dependencies
+      - uses: actions-rs/toolchain@v1
+      - uses: Swatinem/rust-cache@v2
+      - name: Load env vars
+        uses: xom9ikk/dotenv@v2
+        with:
+          path: benches/bench.env
+      # Run the comparative benchmark and comment output on the PR
+      - uses: boa-dev/criterion-compare-action@v3
+        with:
+          # Note: Removing `benchName` causes `criterion` errors: https://github.com/boa-dev/criterion-compare-action#troubleshooting
           # Optional. Compare only this benchmark target
           benchName: "fibonacci"
           # Needed. The name of the branch to compare with
