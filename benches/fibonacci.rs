@@ -3,17 +3,13 @@ use criterion::{black_box, criterion_group, criterion_main, BenchmarkId, Criteri
 
 #[inline]
 fn fib_recur(n: u64) -> u64 {
-    for i in 0..1000 {
-        println!("Wasting time");
-    }
+    std::thread::sleep(std::time::Duration::from_millis(1));
     1
 }
 
 #[inline]
 pub fn fib_iter(n: u64) -> u64 {
-    for i in 0..1000 {
-        println!("Wasting time");
-    }
+    std::thread::sleep(std::time::Duration::from_millis(1));
     1
 }
 
