@@ -45,7 +45,7 @@ impl ProveParams {
     fn params(&self) -> String {
         let output_type = bench_parameters_env().unwrap_or("stdout".into());
         match output_type.as_ref() {
-            "pr-comment" => format!("num-{}/{}", self.fib_n, env!("VERGEN_GIT_BRANCH")),
+            "pr-comment" => format!("num-{}", self.fib_n),
             "commit-comment" => todo!(),
             "gh-pages" => todo!(),
             _ => format!("num-{}/{}-{}", self.fib_n, self.sha, self.date),
