@@ -71,6 +71,7 @@ jobs:
           source bench.env
           set +a
           echo "LURK_BENCH_OUTPUT=pr-comment" >> $GITHUB_ENV
+          echo "LURK_GPU_NAME=$(nvidia-smi --query-gpu=gpu_name --format=csv|tail -n1)" >> $GITHUB_ENV
           env | grep 'LURK'
         working-directory: ${{ github.workspace }}/benches
       # Run the comparative benchmark and comment output on the PR
@@ -91,3 +92,10 @@ jobs:
           benchName: "fibonacci"
           # Needed. The name of the branch to compare with
           branchName: ${{ github.ref_name }}
+      - name: Add GPU info to bench comment
+        uses: peter-evans/create-or-update-comment@v3
+        with:
+          comment-id: ${{ github.event.comment.id }}
+          body: |
+            ${{ env.LURK_GPU_NAME }}
+          reactions: eyes
