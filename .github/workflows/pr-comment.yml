@@ -37,6 +37,7 @@ jobs:
           set -a
           source bench.env
           set +a
+          echo "LURK_BENCH_OUTPUT=pr-comment" >> $GITHUB_ENV
           env | grep 'LURK'
         working-directory: ${{ github.workspace }}/benches
       # Run the comparative benchmark and comment output on the PR
@@ -71,7 +72,7 @@ jobs:
           source bench.env
           set +a
           echo "LURK_BENCH_OUTPUT=pr-comment" >> $GITHUB_ENV
-          echo "LURK_GPU_NAME=$(nvidia-smi --query-gpu=gpu_name --format=csv|tail -n1)" >> $GITHUB_ENV
+      #    echo "LURK_GPU_NAME=$(nvidia-smi --query-gpu=gpu_name --format=csv|tail -n1)" >> $GITHUB_ENV
           env | grep 'LURK'
         working-directory: ${{ github.workspace }}/benches
       # Run the comparative benchmark and comment output on the PR
@@ -82,20 +83,3 @@ jobs:
           benchName: "fibonacci"
           # Needed. The name of the branch to compare with
           branchName: ${{ github.ref_name }}
-      - name: Load new env vars
-        run: echo "LURK_BENCH_OUTPUT=stdout" >> $GITHUB_ENV
-      # Run the comparative benchmark and comment output on the PR
-      - uses: boa-dev/criterion-compare-action@v3
-        with:
-          # Note: Removing `benchName` causes `criterion` errors: https://github.com/boa-dev/criterion-compare-action#troubleshooting
-          # Optional. Compare only this benchmark target
-          benchName: "fibonacci"
-          # Needed. The name of the branch to compare with
-          branchName: ${{ github.ref_name }}
-      - name: Add GPU info to bench comment
-        uses: peter-evans/create-or-update-comment@v3
-        with:
-          comment-id: ${{ github.event.comment.id }}
-          body: |
-            ${{ env.LURK_GPU_NAME }}
-          reactions: eyes
