@@ -1,14 +1,14 @@
 use anyhow::anyhow;
 use criterion::{black_box, criterion_group, criterion_main, BenchmarkId, Criterion};
 
-#[inline]
-fn fib_recur(n: u64) -> u64 {
-    match n {
-        0 => 1,
-        1 => 1,
-        n => fib_recur(n - 1) + fib_recur(n - 2),
-    }
-}
+//#[inline]
+//fn fib_recur(n: u64) -> u64 {
+//    match n {
+//        0 => 1,
+//        1 => 1,
+//        n => fib_recur(n - 1) + fib_recur(n - 2),
+//    }
+//}
 
 #[inline]
 pub fn fib_iter(n: u64) -> u64 {
@@ -38,17 +38,38 @@ struct ProveParams {
 }
 
 impl ProveParams {
-    fn name(&self) -> String {
-        format!("rc={}", self.reduction_count)
-    }
+    //fn name(&self) -> String {
+    //    format!("rc={}", self.reduction_count)
+    //}
 
-    fn params(&self) -> String {
+    //fn params(&self) -> String {
+    //    let output_type = bench_parameters_env().unwrap_or("stdout".into());
+    //    match output_type.as_ref() {
+    //        "pr-comment" => format!("num-{}", self.fib_n),
+    //        "commit-comment" => todo!(),
+    //        "gh-pages" => todo!(),
+    //        _ => format!("num-{}-{}-{}", self.fib_n, self.sha, self.date),
+    //    }
+    //}
+    fn name_params(&self) -> (String, String) {
         let output_type = bench_parameters_env().unwrap_or("stdout".into());
         match output_type.as_ref() {
-            "pr-comment" => format!("num-{}", self.fib_n),
-            "commit-comment" => todo!(),
+            "pr-comment" => (
+                format!("rc={}", self.reduction_count),
+                format!("num-{}", self.fib_n),
+            ),
+            // NOTE for PR: I'm not sure how to compare multiple benchmarks within a bench group,
+            // as `criterion-table` doesn't know how to interleave the bench results.
+            // It probably wouldn't even look that good and might not be possible to compare correctly
+            "commit-comment" => (
+                env!("VERGEN_GIT_BRANCH").into(),
+                format!("num-{}", self.fib_n),
+            ),
             "gh-pages" => todo!(),
-            _ => format!("num-{}/{}-{}", self.fib_n, self.sha, self.date),
+            _ => (
+                format!("rc={}", self.reduction_count),
+                format!("num-{}-{}-{}", self.fib_n, self.sha, self.date),
+            ),
         }
     }
 }
@@ -68,26 +89,31 @@ fn noise_threshold_env() -> anyhow::Result<f64> {
 }
 
 pub fn criterion_benchmark(c: &mut Criterion) {
-    let mut group = c.benchmark_group("Fibonacci");
+    let batch_sizes = [100, 200];
 
-    group.noise_threshold(noise_threshold_env().unwrap_or(0.05));
-    let nums: Vec<u64> = vec![10, 20, 30];
+    for rc in batch_sizes.iter() {
+        let mut group = c.benchmark_group(format!("Fibonacci-rc={}", rc));
 
-    for num in nums {
-        let params = ProveParams {
-            fib_n: num,
-            reduction_count: 10,
-            date: env!("VERGEN_GIT_COMMIT_DATE"),
-            sha: env!("VERGEN_GIT_SHA"),
-        };
-        let id = BenchmarkId::new(format!("Recursive-{}", params.name()), params.params());
-        group.bench_with_input(id, &num, |b, row| b.iter(|| fib_recur(black_box(*row))));
+        group.noise_threshold(noise_threshold_env().unwrap_or(0.05));
+        let nums: Vec<u64> = vec![10, 20, 30];
 
-        let id = BenchmarkId::new(format!("Iterative-{}", params.name()), params.params());
-        group.bench_with_input(id, &num, |b, row| b.iter(|| fib_iter(black_box(*row))));
+        for num in nums {
+            let prove_params = ProveParams {
+                fib_n: num,
+                reduction_count: *rc,
+                date: env!("VERGEN_GIT_COMMIT_DATE"),
+                sha: env!("VERGEN_GIT_SHA"),
+            };
+            let (name, params) = prove_params.name_params();
+            // let id = BenchmarkId::new(format!("Recursive-{}", name), &params);
+            // group.bench_with_input(id, &num, |b, row| b.iter(|| fib_recur(black_box(*row))));
+
+            let id = BenchmarkId::new(format!("Iterative-{}", name), params);
+            group.bench_with_input(id, &num, |b, row| b.iter(|| fib_iter(black_box(*row))));
+        }
+
+        group.finish();
     }
-
-    group.finish();
 }
 
 criterion_group!(benches, criterion_benchmark);
