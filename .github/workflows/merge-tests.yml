@@ -73,7 +73,6 @@ jobs:
         uses: peter-evans/commit-comment@v3
         with:
           body-path: BENCHMARKS.md
-      # TODO: Use jq for JSON parsing if needed
       # Check for benchmark regression based on Criterion's configured noise threshold
       - name: Performance regression check
         id: check-regression
