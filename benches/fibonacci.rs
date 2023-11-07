@@ -1,6 +1,16 @@
 use anyhow::anyhow;
 use criterion::{black_box, criterion_group, criterion_main, BenchmarkId, Criterion};
 
+// Fake iter for comparison
+#[inline]
+fn fib_iter(n: u64) -> u64 {
+    match n {
+        0 => 1,
+        1 => 1,
+        n => fib_iter(n - 1) + fib_iter(n - 2),
+    }
+}
+
 //#[inline]
 //fn fib_recur(n: u64) -> u64 {
 //    match n {
@@ -10,24 +20,24 @@ use criterion::{black_box, criterion_group, criterion_main, BenchmarkId, Criteri
 //    }
 //}
 
-#[inline]
-pub fn fib_iter(n: u64) -> u64 {
-    if n == 1 {
-        1
-    } else {
-        let mut sum = 0;
-        let mut last = 0;
-        let mut curr = 1;
-
-        for _ in 1..n {
-            sum = last + curr;
-            last = curr;
-            curr = sum;
-        }
-
-        sum
-    }
-}
+//#[inline]
+//pub fn fib_iter(n: u64) -> u64 {
+//    if n == 1 {
+//        1
+//    } else {
+//        let mut sum = 0;
+//        let mut last = 0;
+//        let mut curr = 1;
+//
+//        for _ in 1..n {
+//            sum = last + curr;
+//            last = curr;
+//            curr = sum;
+//        }
+//
+//        sum
+//    }
+//}
 
 #[derive(Clone, Debug, Copy)]
 struct ProveParams {
