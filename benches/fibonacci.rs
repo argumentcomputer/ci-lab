@@ -38,40 +38,39 @@ struct ProveParams {
 }
 
 impl ProveParams {
-    //fn name(&self) -> String {
-    //    format!("rc={}", self.reduction_count)
-    //}
-
-    //fn params(&self) -> String {
-    //    let output_type = bench_parameters_env().unwrap_or("stdout".into());
-    //    match output_type.as_ref() {
-    //        "pr-comment" => format!("num-{}", self.fib_n),
-    //        "commit-comment" => todo!(),
-    //        "gh-pages" => todo!(),
-    //        _ => format!("num-{}-{}-{}", self.fib_n, self.sha, self.date),
-    //    }
-    //}
     fn name_params(&self) -> (String, String) {
         let output_type = bench_parameters_env().unwrap_or("stdout".into());
         match output_type.as_ref() {
-            "pr-comment" => (
-                format!("rc={}", self.reduction_count),
-                format!("num-{}", self.fib_n),
-            ),
-            // NOTE for PR: I'm not sure how to compare multiple benchmarks within a bench group,
-            // as `criterion-table` doesn't know how to interleave the bench results.
-            // It probably wouldn't even look that good and might not be possible to compare correctly
-            "commit-comment" => (
-                env!("VERGEN_GIT_BRANCH").into(),
-                format!("num-{}", self.fib_n),
-            ),
-            "gh-pages" => todo!(),
+            "pr-comment" => ("fib".into(), format!("num-{}", self.fib_n)),
+            "commit-comment" => {
+                let branch = env!("VERGEN_GIT_BRANCH");
+                let branch_name = parse_merge_branch(branch).unwrap();
+                (
+                    format!("fib-branch={}", branch_name),
+                    format!("num-{}", self.fib_n),
+                )
+            }
+            // TODO: refine "gh-pages",
             _ => (
-                format!("rc={}", self.reduction_count),
+                "fib".into(),
                 format!("num-{}-{}-{}", self.fib_n, self.sha, self.date),
             ),
         }
     }
+}
+
+fn parse_merge_branch(branch: &str) -> anyhow::Result<String> {
+    let mut branch_split = branch.split('/');
+    let ret = branch_split.next().map_or_else(
+        || anyhow::bail!("Expected a non-empty string"),
+        |x| match x {
+            "gh-readonly-queue" => branch_split
+                .last()
+                .ok_or_else(|| anyhow::anyhow!("Expected a merge queue branch")),
+            _ => Ok(branch),
+        },
+    )?;
+    Ok(ret.into())
 }
 
 fn bench_parameters_env() -> anyhow::Result<String> {
