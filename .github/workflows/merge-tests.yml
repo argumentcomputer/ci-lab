@@ -101,7 +101,6 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: main
-          path: main
       # If we saved on the temporary merge queue branch, the cache would be discarded with the branch
       - uses: actions/cache/save@v3
         id: cache-bench-save
