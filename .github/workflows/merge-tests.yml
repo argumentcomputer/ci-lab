@@ -14,7 +14,6 @@ concurrency:
 jobs:
   # NOTE: Replica of lurk-rs merge-tests GPU benchmark, no GPU here and only benches a regular fibonacci function
   gpu-benchmark:
-    # Test working run
     if: github.event_name != 'pull_request' || github.event.action == 'enqueued'
     name: Run fibonacci bench
     runs-on: ubuntu-latest
@@ -48,22 +47,25 @@ jobs:
         id: cache-bench-restore
         with:
           path: ${{ env.BASE_REF }}.json
-          # Change this to $GPU_MODEL for lurk-rs
-          key: gpu-bench-$CPU_MODEL-${{ env.BASE_REF }}
-        working-directory: ${{ github.workspace }}
+          # Add $GPU_MODEL for lurk-rs
+          key: gpu-bench-${{ env.BASE_REF }}
       - name: Check for cache hit
         if: steps.cache-bench-restore.outputs.cache-hit == 'true'
         run: echo "CACHE HIT"
       - name: Run GPU bench on base branch
         if: steps.cache-bench-restore.outputs.cache-hit != 'true'
         run: |
-          just --justfile ../benches/justfile --dotenv-filename ../benches/bench.env bench fibonacci
+          # Copy justfile & env to main, overwriting existing config with that of PR branch
+          cp ../benches/justfile ../benches/bench.env .
+          just --dotenv-filename bench.env bench fibonacci
           # Copy bench output to PR branch
           cp ${{ env.BASE_REF }}.json ..
         working-directory: ${{ github.workspace }}/main
       - name: Run GPU bench on PR branch
-        run: just --justfile benches/justfile --dotenv-filename benches/bench.env bench fibonacci
-        working-directory: ${{ github.workspace }}/benches
+        run: |
+          just --justfile benches/justfile --dotenv-filename benches/bench.env bench fibonacci
+          cp benches/${{ github.sha }}.json .
+        working-directory: ${{ github.workspace }}
       - name: copy the benchmark template and prepare it with data
         run: |
           cp .github/tables.toml .
@@ -87,6 +89,5 @@ jobs:
         id: cache-bench-save
         with:
           path: ${{ github.sha }}.json
-          # Change this to $GPU_MODEL for lurk-rs
-          key: gpu-bench-$CPU_MODEL-${{ github.sha }}
-        working-directory: ${{ github.workspace }}
+          # Add $GPU_MODEL for lurk-rs
+          key: gpu-bench-${{ github.sha }}
