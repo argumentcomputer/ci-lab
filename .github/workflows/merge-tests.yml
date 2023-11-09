@@ -14,7 +14,8 @@ concurrency:
 jobs:
   # NOTE: Replica of lurk-rs merge-tests GPU benchmark, no GPU here and only benches a regular fibonacci function
   gpu-benchmark:
-    if: github.event_name != 'pull_request' || github.event.action == 'enqueued'
+    # Test on `pull_request`
+    #if: github.event_name != 'pull_request' || github.event.action == 'enqueued'
     name: Run fibonacci bench
     runs-on: ubuntu-latest
     steps:
@@ -52,7 +53,6 @@ jobs:
           path: ${{ env.RUNNER_CACHE }}/${{ env.BASE_REF }}.json
           # Add $GPU_MODEL for lurk-rs
           key: gpu-bench-${{ env.BASE_REF }}
-        working-directory: ${{ github.workspace }}
       - name: Copy bench to workdir on cache hit
         if: steps.cache-bench-restore.outputs.cache-hit == 'true'
         run: cp ${{ env.RUNNER_CACHE }}/{{ env.BASE_REF }}.json .
@@ -94,6 +94,13 @@ jobs:
       - name: Write bench file to non-volatile path
         run: cp ${{ github.sha }}.json ${{ env.RUNNER_CACHE }}
         working-directory: ${{ github.workspace }}
+      # TODO: Is there a better way to do this?
+      # Checkout main again to save cache on default branch
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          path: main
+      # If we saved on the temporary merge queue branch, the cache would be discarded with the branch
       - uses: actions/cache/save@v3
         id: cache-bench-save
         with:
