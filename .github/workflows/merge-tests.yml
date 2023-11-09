@@ -15,7 +15,7 @@ jobs:
   # NOTE: Replica of lurk-rs merge-tests GPU benchmark, no GPU here and only benches a regular fibonacci function
   gpu-benchmark:
     # Test on `pull_request`
-    if: github.event_name != 'pull_request' || github.event.action == 'enqueued'
+    #if: github.event_name != 'pull_request' || github.event.action == 'enqueued'
     name: Run fibonacci bench
     runs-on: ubuntu-latest
     steps:
