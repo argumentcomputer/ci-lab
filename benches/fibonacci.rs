@@ -1,14 +1,14 @@
 use anyhow::anyhow;
 use criterion::{black_box, criterion_group, criterion_main, BenchmarkId, Criterion};
 
-#[inline]
-fn fib_recur(n: u64) -> u64 {
-    match n {
-        0 => 1,
-        1 => 1,
-        n => fib_recur(n - 1) + fib_recur(n - 2),
-    }
-}
+//#[inline]
+//fn fib_recur(n: u64) -> u64 {
+//    match n {
+//        0 => 1,
+//        1 => 1,
+//        n => fib_recur(n - 1) + fib_recur(n - 2),
+//    }
+//}
 
 #[inline]
 pub fn fib_iter(n: u64) -> u64 {
@@ -86,8 +86,8 @@ pub fn criterion_benchmark(c: &mut Criterion) {
                 sha: env!("VERGEN_GIT_SHA"),
             };
             let (name, params) = prove_params.name_params();
-            let id = BenchmarkId::new(format!("Recursive-{}", name), &params);
-            group.bench_with_input(id, &num, |b, row| b.iter(|| fib_recur(black_box(*row))));
+            //let id = BenchmarkId::new(format!("Recursive-{}", name), &params);
+            //group.bench_with_input(id, &num, |b, row| b.iter(|| fib_recur(black_box(*row))));
 
             let id = BenchmarkId::new(format!("Iterative-{}", name), params);
             group.bench_with_input(id, &num, |b, row| b.iter(|| fib_iter(black_box(*row))));

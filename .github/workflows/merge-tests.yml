@@ -14,7 +14,6 @@ concurrency:
 jobs:
   # NOTE: Replica of lurk-rs merge-tests GPU benchmark, no GPU here and only benches a regular fibonacci function
   gpu-benchmark:
-    # Test working run
     #if: github.event_name != 'pull_request' || github.event.action == 'enqueued'
     name: Run fibonacci bench
     runs-on: ubuntu-latest
@@ -48,8 +47,8 @@ jobs:
         id: cache-bench-restore
         with:
           path: ${{ env.BASE_REF }}.json
-          # Change this to $GPU_MODEL for lurk-rs
-          key: gpu-bench-${{ env.CPU_MODEL }}-${{ env.BASE_REF }}
+          # Add $GPU_MODEL for lurk-rs
+          key: gpu-bench-${{ env.BASE_REF }}
       - name: Check for cache hit
         if: steps.cache-bench-restore.outputs.cache-hit == 'true'
         run: echo "CACHE HIT"
@@ -90,19 +89,5 @@ jobs:
         id: cache-bench-save
         with:
           path: ${{ github.sha }}.json
-          # Change this to $GPU_MODEL for lurk-rs
-          key: gpu-bench-${{ env.CPU_MODEL }}-${{ github.sha }}
-      # Test cache restore
-      - name: Remove output so it can be restored
-        run: rm ${{ github.sha }}.json
-      - uses: actions/cache/restore@v3
-        id: cache-bench-restore-test
-        with:
-          path: ${{ github.sha }}.json
-          # Change this to $GPU_MODEL for lurk-rs
-          key: gpu-bench-${{ env.CPU_MODEL }}-${{ github.sha }}
-      - name: Check for cache hit
-        if: steps.cache-bench-restore-test.outputs.cache-hit == 'true'
-        run: |
-          ls ${{ github.sha }}.json
-          echo "CACHE HIT"
+          # Add $GPU_MODEL for lurk-rs
+          key: gpu-bench-${{ github.sha }}
