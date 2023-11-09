@@ -14,7 +14,7 @@ concurrency:
 jobs:
   # NOTE: Replica of lurk-rs merge-tests GPU benchmark, no GPU here and only benches a regular fibonacci function
   gpu-benchmark:
-    #if: github.event_name != 'pull_request' || github.event.action == 'enqueued'
+    if: github.event_name != 'pull_request' || github.event.action == 'enqueued'
     name: Run fibonacci bench
     runs-on: ubuntu-latest
     steps:
@@ -46,12 +46,9 @@ jobs:
       - uses: actions/cache/restore@v3
         id: cache-bench-restore
         with:
-          #path: ${{ env.BASE_REF }}.json
-          # Test known cache hit (previous commit)
-          path: 7aaa5658e5c68f6d32a1b57860e026424197c0fe.json
+          path: ${{ env.BASE_REF }}.json
           # Add $GPU_MODEL for lurk-rs
-          #key: gpu-bench-${{ env.BASE_REF }}
-          key: gpu-bench-7aaa5658e5c68f6d32a1b57860e026424197c0fe
+          key: gpu-bench-${{ env.BASE_REF }}
       - name: Check for cache hit
         if: steps.cache-bench-restore.outputs.cache-hit == 'true'
         run: echo "CACHE HIT"
@@ -82,8 +79,7 @@ jobs:
       # TODO: Fail on regression (e.g. `criterion-table` comparative output of `1.10+ slower`)
       # Create a `criterion-table` and write in commit comment
       - name: Run `criterion-table`
-        #run: cat ${{ env.BASE_REF }}.json ${{ github.sha }}.json | criterion-table > BENCHMARKS.md
-        run: cat 7aaa5658e5c68f6d32a1b57860e026424197c0fe.json ${{ github.sha }}.json | criterion-table > BENCHMARKS.md
+        run: cat ${{ env.BASE_REF }}.json ${{ github.sha }}.json | criterion-table > BENCHMARKS.md
       - name: Write bench on commit comment
         uses: peter-evans/commit-comment@v3
         with:
