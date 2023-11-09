@@ -35,6 +35,9 @@ jobs:
           echo "LURK_BENCH_OUTPUT=commit-comment" | tee -a $GITHUB_ENV
           # Get CPU model
           echo "CPU_MODEL=$(grep '^model name' /proc/cpuinfo | head -1 | awk -F ': ' '{ print $2 }')" | tee -a $GITHUB_ENV
+          # Create cache dir
+          mkdir -p /var/tmp/runner/cache
+          echo "RUNNER_CACHE=/var/tmp/runner/cache" | tee -a $GITHUB_ENV
       # Checkout base branch for comparative bench
       - uses: actions/checkout@v4
         with:
@@ -46,17 +49,20 @@ jobs:
       - uses: actions/cache/restore@v3
         id: cache-bench-restore
         with:
-          path: ${{ env.BASE_REF }}.json
+          path: ${{ env.RUNNER_CACHE }}/${{ env.BASE_REF }}.json
           # Add $GPU_MODEL for lurk-rs
           key: gpu-bench-${{ env.BASE_REF }}
-      - name: Check for cache hit
+        working-directory: ${{ github.workspace }}
+      - name: Copy bench to workdir on cache hit
         if: steps.cache-bench-restore.outputs.cache-hit == 'true'
-        run: echo "CACHE HIT"
+        run: cp ${{ env.RUNNER_CACHE }}/{{ env.BASE_REF }}.json .
+        working-directory: ${{ github.workspace }}
       - name: Run GPU bench on base branch
         if: steps.cache-bench-restore.outputs.cache-hit != 'true'
         run: |
           # Copy justfile & env to main, overwriting existing config with that of PR branch
           cp ../benches/justfile ../benches/bench.env .
+          # Run benchmark
           just --dotenv-filename bench.env bench fibonacci
           # Copy bench output to PR branch
           cp ${{ env.BASE_REF }}.json ..
@@ -85,9 +91,12 @@ jobs:
         with:
           body-path: BENCHMARKS.md
       # TODO: Only run if there is no failure due to regression
+      - name: Write bench file to non-volatile path
+        run: cp ${{ github.sha }}.json ${{ env.RUNNER_CACHE }}
+        working-directory: ${{ github.workspace }}
       - uses: actions/cache/save@v3
         id: cache-bench-save
         with:
-          path: ${{ github.sha }}.json
+          path: ${{ env.RUNNER_CACHE }}/${{ env.BASE_REF }}.json
           # Add $GPU_MODEL for lurk-rs
           key: gpu-bench-${{ github.sha }}
