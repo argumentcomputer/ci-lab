@@ -15,7 +15,7 @@ jobs:
   # NOTE: Replica of lurk-rs merge-tests GPU benchmark, no GPU here and only benches a regular fibonacci function
   gpu-benchmark:
     # Test on `pull_request`
-    #if: github.event_name != 'pull_request' || github.event.action == 'enqueued'
+    if: github.event_name != 'pull_request' || github.event.action == 'enqueued'
     name: Run fibonacci bench
     runs-on: ubuntu-latest
     steps:
@@ -45,6 +45,8 @@ jobs:
           ref: main
           path: main
       - name: Set base ref variable
+        # TODO: Replace this in favor of `${{ github.event.pull_request.base.sha }}`
+        # Then we don't have to checkout main unless the cache misses
         run: echo "BASE_REF=$(git rev-parse HEAD)" | tee -a $GITHUB_ENV
         working-directory: ${{ github.workspace }}/main
       - uses: actions/cache/restore@v3
@@ -104,6 +106,6 @@ jobs:
       - uses: actions/cache/save@v3
         id: cache-bench-save
         with:
-          path: ${{ env.RUNNER_CACHE }}/${{ env.BASE_REF }}.json
+          path: ${{ env.RUNNER_CACHE }}/${{ github.sha }}.json
           # Add $GPU_MODEL for lurk-rs
           key: gpu-bench-${{ github.sha }}
