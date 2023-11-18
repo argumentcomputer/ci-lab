@@ -23,11 +23,11 @@ jobs:
         run: |
           if [ -f "dummy-file" ]
           then
-            echo "cached=true" | tee -a $GITHUB_OUTPUTS
+            echo "cached=true" | tee -a $GITHUB_OUTPUT
           else
-            echo "cached=false" | tee -a $GITHUB_OUTPUTS
+            echo "cached=false" | tee -a $GITHUB_OUTPUT
           fi
       - name: Check output
-        if: steps.cached-bench.outputs.cached == 'true'
+        if:  steps.cached-bench.outputs.cached == 'true'
         run: |
-          echo "JSON file exists?"
+          echo "JSON file does not exist"
