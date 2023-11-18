@@ -1,3 +1,4 @@
+# Test cache restore
 # Run final tests only when attempting to merge, shown as skipped status checks beforehand
 name: Merge group tests
 
@@ -47,10 +48,10 @@ jobs:
         run: |
           if [ -f "${{ env.BASE_SHA }}.json" ]
           then
-            echo "cached=true" | tee -a $GITHUB_OUTPUTS
+            echo "cached=true" | tee -a $GITHUB_OUTPUT
             cp ${{ env.BASE_SHA }}.json ..
           else
-            echo "cached=false" | tee -a $GITHUB_OUTPUTS
+            echo "cached=false" | tee -a $GITHUB_OUTPUT
           fi
         working-directory: ${{ github.workspace }}/gh-pages
       # Checkout base branch for comparative bench
@@ -132,6 +133,10 @@ jobs:
         # If not, where should it go?
         # In Lurk, rename the file to include GPU name to ensure comparable specs:
         # mv ../${{ github.sha }}.json ./${{ github.sha }}-${{ env.GPU_MODEL }}.json
+      - name: Remove old main bench
+        run: |
+          rm ${{ env.BASE_SHA }}.json
+        working-directory: ${{ github.workspace }}
       - name: Cache bench result on `gh-pages` branch if no regression
         if: steps.regression-check.outcome != 'failure'
         uses: stefanzweifel/git-auto-commit-action@v5
