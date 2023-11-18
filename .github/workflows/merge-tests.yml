@@ -1,4 +1,3 @@
-# Test cache restore
 # Run final tests only when attempting to merge, shown as skipped status checks beforehand
 name: Merge group tests
 
