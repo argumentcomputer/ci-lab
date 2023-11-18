@@ -14,7 +14,6 @@ concurrency:
 jobs:
   # NOTE: Replica of lurk-rs merge-tests GPU benchmark, no GPU here and only benches a regular fibonacci function
   gpu-benchmark:
-    # Test on `pull_request`
     if: github.event_name != 'pull_request' || github.event.action == 'enqueued'
     name: Run fibonacci bench
     runs-on: ubuntu-latest
@@ -36,9 +35,6 @@ jobs:
           echo "LURK_BENCH_OUTPUT=commit-comment" | tee -a $GITHUB_ENV
           # Get CPU model
           echo "CPU_MODEL=$(grep '^model name' /proc/cpuinfo | head -1 | awk -F ': ' '{ print $2 }')" | tee -a $GITHUB_ENV
-          # Create cache dir
-          mkdir -p /var/tmp/runner/cache
-          echo "RUNNER_CACHE=/var/tmp/runner/cache" | tee -a $GITHUB_ENV
       # Checkout base branch for comparative bench
       - uses: actions/checkout@v4
         with:
@@ -49,18 +45,7 @@ jobs:
         # Then we don't have to checkout main unless the cache misses
         run: echo "BASE_REF=$(git rev-parse HEAD)" | tee -a $GITHUB_ENV
         working-directory: ${{ github.workspace }}/main
-      - uses: actions/cache/restore@v3
-        id: cache-bench-restore
-        with:
-          path: ${{ env.RUNNER_CACHE }}/${{ env.BASE_REF }}.json
-          # Add $GPU_MODEL for lurk-rs
-          key: gpu-bench-${{ env.BASE_REF }}
-      - name: Copy bench to workdir on cache hit
-        if: steps.cache-bench-restore.outputs.cache-hit == 'true'
-        run: cp ${{ env.RUNNER_CACHE }}/{{ env.BASE_REF }}.json .
-        working-directory: ${{ github.workspace }}
       - name: Run GPU bench on base branch
-        if: steps.cache-bench-restore.outputs.cache-hit != 'true'
         run: |
           # Copy justfile & env to main, overwriting existing config with that of PR branch
           cp ../benches/justfile ../benches/bench.env .
@@ -92,19 +77,33 @@ jobs:
         uses: peter-evans/commit-comment@v3
         with:
           body-path: BENCHMARKS.md
-      # TODO: Only run if there is no failure due to regression
-      - name: Write bench file to non-volatile path
-        run: cp ${{ github.sha }}.json ${{ env.RUNNER_CACHE }}
-        working-directory: ${{ github.workspace }}
-      # TODO: Is there a better way to do this?
-      # Checkout main again to save cache on default branch
-      - uses: actions/checkout@v4
+      # Check for a slowdown >= 10%. If so, open an issue
+      - name: Check for perf regression
+        id: regression-check
+        run: |
+          regressions=$(awk -F'[*x]' '/slower/{print $11}' BENCHMARKS.md)
+
+          echo $regressions
+
+          for r in $regressions
+          do
+            if (( $(echo "$r >= 0.10" | bc -l) ))
+            then 
+              exit 1
+            fi
+          done
+        continue-on-error: true
+      - name: Create file for issue
+        if: steps.regression-check.outcome == 'failure'
+        run: |
+          printf '%s\n' "Regression >= 10% found during merge for commit ${{ github.sha }}
+          Workflow run: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}" > ./_body.md
+      - name: Open issue on regression
+        if: steps.regression-check.outcome == 'failure'
+        uses: peter-evans/create-issue-from-file@v4
         with:
-          ref: main
-      # If we saved on the temporary merge queue branch, the cache would be discarded with the branch
-      - uses: actions/cache/save@v3
-        id: cache-bench-save
-        with:
-          path: ${{ env.RUNNER_CACHE }}/${{ github.sha }}.json
-          # Add $GPU_MODEL for lurk-rs
-          key: gpu-bench-${{ github.sha }}
+          title: 'Performance regression for PR #${{ github.event.number }}'
+          content-filepath: ./_body.md
+          labels: |
+            P-Performance
+            automated issue
