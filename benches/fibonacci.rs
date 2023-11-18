@@ -12,23 +12,23 @@ use criterion::{black_box, criterion_group, criterion_main, BenchmarkId, Criteri
 
 #[inline]
 pub fn fib_iter(n: u64) -> u64 {
-    if n == 1 {
-        1
-    } else {
-        let mut sum = 0;
-        let mut last = 0;
-        let mut curr = 1;
+    //if n == 1 {
+    //    1
+    //} else {
+    //    let mut sum = 0;
+    //    let mut last = 0;
+    //    let mut curr = 1;
 
-        for _ in 1..n {
-            sum = last + curr;
-            last = curr;
-            curr = sum;
-        }
+    //    for _ in 1..n {
+    //        sum = last + curr;
+    //        last = curr;
+    //        curr = sum;
+    //    }
 
-        sum
-    }
-    //std::thread::sleep(std::time::Duration::from_millis(1));
-    //1
+    //    sum
+    //}
+    std::thread::sleep(std::time::Duration::from_millis(1));
+    1
 }
 
 #[derive(Clone, Debug, Copy)]
