@@ -1,0 +1,33 @@
+# Test output match
+name: Test
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+    branches: [main]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
+
+jobs:
+  output-test:
+    name: Run output test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: gh-pages
+      - name: Check for cached bench result
+        id: cached-bench
+        run: |
+          if [ -f "dummy-file" ]
+          then
+            echo "cached=true" | tee -a $GITHUB_OUTPUTS
+          else
+            echo "cached=false" | tee -a $GITHUB_OUTPUTS
+          fi
+      - name: Check output
+        if: steps.cached-bench.outputs.cached == 'true'
+        run: |
+          echo "JSON file exists?"
