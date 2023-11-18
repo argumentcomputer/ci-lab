@@ -93,16 +93,26 @@ jobs:
             fi
           done
         continue-on-error: true
+      # Not possible to use ${{ github.event.number }} with the `merge_group` trigger
+      - name: Get PR number
+        uses: 8BitJonny/gh-get-current-pr@2.2.0
+        id: PR
       - name: Create file for issue
         if: steps.regression-check.outcome == 'failure'
         run: |
-          printf '%s\n' "Regression >= 10% found during merge for commit ${{ github.sha }}
+          printf '%s\n' "Regression >= 10% found during merge for PR #${prNumber}: ${prTitle}
+          Merged at: ${prMergedAt}
+          Commit: ${{ github.sha }}
           Workflow run: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}" > ./_body.md
+        env:
+          prNumber: ${{ steps.PR.outputs.number }}
+          prTitle: ${{ steps.PR.outputs.pr_title }}
+          prMergedAt: ${{ steps.PR.outputs.pr_merged_at }}
       - name: Open issue on regression
         if: steps.regression-check.outcome == 'failure'
         uses: peter-evans/create-issue-from-file@v4
         with:
-          title: 'Performance regression for PR #${{ github.event.number }}'
+          title: ':rotating-light: Performance regression detected for PR #${{ steps.PR.outputs.number }}'
           content-filepath: ./_body.md
           labels: |
             P-Performance
