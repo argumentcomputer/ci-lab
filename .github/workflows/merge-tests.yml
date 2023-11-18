@@ -112,8 +112,27 @@ jobs:
         if: steps.regression-check.outcome == 'failure'
         uses: peter-evans/create-issue-from-file@v4
         with:
-          title: ':rotating-light: Performance regression detected for PR #${{ steps.PR.outputs.number }}'
+          title: ':rotating_light: Performance regression detected for PR #${{ steps.PR.outputs.number }}'
           content-filepath: ./_body.md
           labels: |
             P-Performance
             automated issue
+  echo-sha:
+    if: github.event_name != 'pull_request' || github.event.action == 'enqueued'
+    name: Get merge_group Git info
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          printf '%s\n' "${mergeSha}
+          ${headSha}
+          ${headRef}
+          ${headCommit}
+          ${baseSha}
+          ${baseRef}"
+        env:
+          mergeSha: ${{ github.sha }}
+          headSha: ${{ github.event.merge_group.head_sha }}
+          headRef: ${{ github.event.merge_group.head_ref }}
+          headCommit: ${{ github.event.merge_group.head_commit.id }}
+          baseSha: ${{ github.event.merge_group.base_sha }}
+          baseRef: ${{ github.event.merge_group.base_ref }}
