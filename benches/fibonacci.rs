@@ -34,7 +34,7 @@ pub fn fib_iter(n: u64) -> u64 {
 #[derive(Clone, Debug, Copy)]
 struct ProveParams {
     fib_n: u64,
-    _reduction_count: u64,
+    _reduction_count: usize,
     date: &'static str,
     sha: &'static str,
 }
@@ -62,6 +62,21 @@ fn bench_parameters_env() -> anyhow::Result<String> {
         .map_err(|e| anyhow!("Noise threshold env var isn't set: {e}"))
 }
 
+fn rc_env() -> anyhow::Result<Vec<usize>> {
+    std::env::var("LURK_RC")
+        .map_err(|e| anyhow!("Reduction count env var isn't set: {e}"))
+        .and_then(|rc| {
+            let vec: anyhow::Result<Vec<usize>> = rc
+                .split(',')
+                .map(|rc| {
+                    rc.parse::<usize>()
+                        .map_err(|e| anyhow!("Failed to parse RC: {e}"))
+                })
+                .collect();
+            vec
+        })
+}
+
 fn noise_threshold_env() -> anyhow::Result<f64> {
     std::env::var("LURK_BENCH_NOISE_THRESHOLD")
         .map_err(|e| anyhow!("Noise threshold env var isn't set: {e}"))
@@ -72,9 +87,9 @@ fn noise_threshold_env() -> anyhow::Result<f64> {
 }
 
 pub fn criterion_benchmark(c: &mut Criterion) {
-    let batch_sizes = [100, 200];
+    let reduction_counts = rc_env().unwrap_or_else(|_| vec![100]);
 
-    for rc in batch_sizes.iter() {
+    for rc in reduction_counts.iter() {
         let mut group = c.benchmark_group(format!("Fibonacci-rc={}", rc));
 
         group.noise_threshold(noise_threshold_env().unwrap_or(0.05));
