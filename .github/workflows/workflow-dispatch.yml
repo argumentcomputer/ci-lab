@@ -28,9 +28,9 @@ jobs:
         run: echo "LURK_BENCH_OUTPUT=commit-comment" | tee -a $GITHUB_ENV
       - name: Run GPU bench on branch
         run: |
-          just --justfile benches/justfile --dotenv-filename benches/bench.env bench fibonacci
-          cp benches/${{ github.sha }}.json .
-        working-directory: ${{ github.workspace }}
+          just --dotenv-filename bench.env bench fibonacci
+          cp ${{ github.sha }}.json ..
+        working-directory: ${{ github.workspace }}/benches
       - name: copy the benchmark template and prepare it with data
         run: |
           cp .github/tables.toml .
