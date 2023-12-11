@@ -20,6 +20,7 @@ concurrency:
 jobs:
   custom-script:
     name: Run local fibonacci bench
+    if: github.event.inputs.runner != 'gpu-bench'
     runs-on: ${{ github.event.inputs.runner }}
     steps:
       - uses: actions/checkout@v4
