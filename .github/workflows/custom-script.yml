@@ -3,10 +3,6 @@ name: Custom script
 on:
   workflow_dispatch:
     inputs:
-      script:
-        description: 'Script to run'
-        required: true
-        type: string
       runner:
         description: 'GitHub Actions runner'
         required: true
@@ -15,7 +11,7 @@ on:
         options:
           - ubuntu-latest
           - buildjet-32vcpu-ubuntu-2204
-          - gpu-l4-32vcpu
+          - self-hosted,gpu-bench
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
@@ -24,14 +20,14 @@ concurrency:
 jobs:
   run:
     name: Run local fibonacci bench
-    runs-on: ${{ github.event.inputs.runner }}
+    runs-on: [${{ github.event.inputs.runner }}]
     steps:
       - uses: actions/checkout@v4
       # Install dependencies
       - uses: actions-rs/toolchain@v1
       - uses: Swatinem/rust-cache@v2
       - name: Set up GPU if applicable
-        if: ${{ github.event.inputs.runner }} == "gpu-l4-32vcpu"
+        if: ${{ github.event.inputs.runner == "gpu-bench" }}
         run: |
           nvidia-smi
           nvcc --version
@@ -40,12 +36,12 @@ jobs:
           env | grep -E "LURK|EC_GPU|CUDA"
       # TODO: Remove
       - name: Test env vars
-        if: ${{ github.event.inputs.runner }} != "gpu-l4-32vcpu"
+        if: ${{ github.event.inputs.runner != "gpu-bench" }}
         run: |
           echo "RUNNER_NUM_CPUS=$(nproc --all)" | tee -a $GITHUB_ENV
           echo "RUNNER_TYPE=cpu: ${{ env.RUNNER_NUM_CPUS }} vCPUS" | tee -a $GITHUB_ENV
       - name: Run input script
         run: |
-          printf '#!/bin/bash\n\n${{ github.event.inputs.script }}' | tee script.sh
           chmod +x script.sh
           ./script.sh
+        workspace: ${{ github.workspace }}
