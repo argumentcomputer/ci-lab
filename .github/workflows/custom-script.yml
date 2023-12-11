@@ -40,7 +40,7 @@ jobs:
         if: github.event.inputs.runner != 'gpu-bench'
         run: |
           TEST_NUM_CPUS=$(nproc --all)
-          [[ ! -z "$TEST_NUM_CPUS" ]] && echo "TEST_NUM_CPUS=$TEST_NUM_CPUS" | tee -a $GITHUB_ENV
+          echo "TEST_NUM_CPUS=$TEST_NUM_CPUS" | tee -a $GITHUB_ENV
       - name: Run input script
         run: |
           chmod +x script.sh
