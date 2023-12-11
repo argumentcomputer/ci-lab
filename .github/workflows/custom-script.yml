@@ -31,15 +31,17 @@ jobs:
         run: |
           nvidia-smi
           nvcc --version
-          echo "CUDA_ARCH=$(nvidia-smi --query-gpu=compute_cap --format=csv,noheader | sed 's/\.//g')" | tee -a $GITHUB_ENV
-          echo "EC_GPU_CUDA_NVCC_ARGS=--fatbin --gpu-architecture=sm_${{ env.CUDA_ARCH }} --generate-code=arch=compute_${{ env.CUDA_ARCH }},code=sm_${{ env.CUDA_ARCH }}" | tee -a $GITHUB_ENV
+          CUDA_ARCH=$(nvidia-smi --query-gpu=compute_cap --format=csv,noheader | sed 's/\.//g')
+          echo "CUDA_ARCH=$CUDA_ARCH" | tee -a $GITHUB_ENV
+          echo "EC_GPU_CUDA_NVCC_ARGS=--fatbin --gpu-architecture=sm_$CUDA_ARCH --generate-code=arch=compute_$CUDA_ARCH,code=sm_$CUDA_ARCH" | tee -a $GITHUB_ENV
           env | grep -E "LURK|EC_GPU|CUDA"
       # TODO: Remove
       - name: Test env vars
         if: github.event.inputs.runner != 'gpu-bench'
         run: |
-          echo "RUNNER_NUM_CPUS=$(nproc --all)" | tee -a $GITHUB_ENV
-          echo "RUNNER_TYPE=cpu: ${{ env.RUNNER_NUM_CPUS }} vCPUS" | tee -a $GITHUB_ENV
+          RUNNER_NUM_CPUS=$(nproc --all)
+          echo "RUNNER_NUM_CPUS=$RUNNER_NUM_CPUs" | tee -a $GITHUB_ENV
+          echo "RUNNER_TYPE=cpu: $RUNNER_NUM_CPUs vCPUS" | tee -a $GITHUB_ENV
       - name: Run input script
         run: |
           chmod +x script.sh
