@@ -27,7 +27,7 @@ jobs:
       - uses: actions-rs/toolchain@v1
       - uses: Swatinem/rust-cache@v2
       - name: Set up GPU if applicable
-        if: ${{ github.event.inputs.runner == "gpu-bench" }}
+        if: github.event.inputs.runner == "gpu-bench"
         run: |
           nvidia-smi
           nvcc --version
@@ -36,7 +36,7 @@ jobs:
           env | grep -E "LURK|EC_GPU|CUDA"
       # TODO: Remove
       - name: Test env vars
-        if: ${{ github.event.inputs.runner != "gpu-bench" }}
+        if: github.event.inputs.runner != "gpu-bench"
         run: |
           echo "RUNNER_NUM_CPUS=$(nproc --all)" | tee -a $GITHUB_ENV
           echo "RUNNER_TYPE=cpu: ${{ env.RUNNER_NUM_CPUS }} vCPUS" | tee -a $GITHUB_ENV
