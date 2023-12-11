@@ -1,4 +1,4 @@
-name: Manual benchmarks
+name: Custom script
 
 on:
   workflow_dispatch:
