@@ -32,16 +32,16 @@ jobs:
           nvidia-smi
           nvcc --version
           CUDA_ARCH=$(nvidia-smi --query-gpu=compute_cap --format=csv,noheader | sed 's/\.//g')
-          echo "CUDA_ARCH=$CUDA_ARCH" | tee -a $GITHUB_ENV
           echo "EC_GPU_CUDA_NVCC_ARGS=--fatbin --gpu-architecture=sm_$CUDA_ARCH --generate-code=arch=compute_$CUDA_ARCH,code=sm_$CUDA_ARCH" | tee -a $GITHUB_ENV
+          echo "CUDA_ARCH=$CUDA_ARCH" | tee -a $GITHUB_ENV
           env | grep -E "LURK|EC_GPU|CUDA"
       # TODO: Remove
       - name: Test env vars
         if: github.event.inputs.runner != 'gpu-bench'
         run: |
           RUNNER_NUM_CPUS=$(nproc --all)
-          echo "RUNNER_NUM_CPUS=$RUNNER_NUM_CPUs" | tee -a $GITHUB_ENV
           echo "RUNNER_TYPE=cpu: $RUNNER_NUM_CPUs vCPUS" | tee -a $GITHUB_ENV
+          echo "RUNNER_NUM_CPUS=$RUNNER_NUM_CPUs" | tee -a $GITHUB_ENV
       - name: Run input script
         run: |
           chmod +x script.sh
