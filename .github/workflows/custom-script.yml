@@ -11,7 +11,7 @@ on:
         options:
           - ubuntu-latest
           - buildjet-32vcpu-ubuntu-2204
-          - self-hosted,gpu-bench
+          - gpu-bench
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
@@ -20,7 +20,7 @@ concurrency:
 jobs:
   run:
     name: Run local fibonacci bench
-    runs-on: [${{ github.event.inputs.runner }}]
+    runs-on: ${{ github.event.inputs.runner }}
     steps:
       - uses: actions/checkout@v4
       # Install dependencies
