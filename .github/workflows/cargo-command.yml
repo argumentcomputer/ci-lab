@@ -36,6 +36,7 @@ jobs:
         with:
           envFile:
             'cargo-command.env'
+        continue-on-error: true 
       # Checks if command starts with `cargo`, then runs if so
       - name: Run command
         run: |
@@ -69,6 +70,7 @@ jobs:
         with:
           envFile:
             'cargo-command.env'
+        continue-on-error: true 
       # Checks if command starts with `cargo`
       - name: Run command
         run: |
