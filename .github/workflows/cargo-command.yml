@@ -1,5 +1,5 @@
 # Commit a temporary `cargo-command.env` on the desired local branch before running workflow
-name: Run custom `cargo` command
+name: Run  `cargo` command
 
 on:
   workflow_dispatch:
@@ -21,9 +21,35 @@ on:
 concurrency:
   group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
   cancel-in-progress: true
+
+jobs:
+  cpu-script:
+    name: Run `cargo` command
+    if: inputs.runner != 'gpu-bench'
+    runs-on: ${{ github.event.inputs.runner }}
+    steps:
+      - uses: actions/checkout@v4
+      # Install dependencies
+      - uses: actions-rs/toolchain@v1
+      - uses: Swatinem/rust-cache@v2
+      - uses: cardinalby/export-env-action@v2
+        with:
+          envFile:
+            'cargo-command.env'
+      # Checks if command starts with `cargo`, then runs if so
+      - name: Run command
+        run: |
+          CARGO_CMD=$(echo ${{ inputs.command }} | awk '{ print $1 }')
+          if [ "$CARGO_CMD" != "cargo" ]; 
+          then
+            echo 'Invalid `cargo` command'
+            exit 1
+          else
+            ${{ inputs.command }}
+          fi
   gpu-script:
-    name: Run custom `ci-script.sh` on GPU
-    if: github.event.inputs.runner == 'gpu-bench'
+    name: Run `cargo` command on GPU
+    if: inputs.runner == 'gpu-bench'
     runs-on: [self-hosted, "${{ github.event.inputs.runner }}", "NVIDIA L4"]
     steps:
       - uses: actions/checkout@v4
