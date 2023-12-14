@@ -12,6 +12,7 @@ jobs:
   left-or-right:
     runs-on: ubuntu-latest
     steps:
+    - uses: actions/checkout@v4
     - name: Run the left option
       if: inputs.left-or-right == true
       run: |
