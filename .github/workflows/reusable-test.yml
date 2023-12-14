@@ -1,0 +1,23 @@
+name: Reusable test workflow
+
+on:
+  workflow_call:
+    inputs:
+      left-or-right:
+        required: true
+        default: left
+        type: boolean
+
+jobs:
+  left-or-right:
+    name: Run the left option
+    if: inputs.left-or-right == true
+    steps:
+      - run: |
+          echo 'left'
+    name: Run the right option
+    if: inputs.left-or-right == false
+    steps:
+      - run: |
+          echo 'right'
+  
