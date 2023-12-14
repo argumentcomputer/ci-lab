@@ -10,14 +10,14 @@ on:
 
 jobs:
   left-or-right:
-    name: Run the left option
-    if: inputs.left-or-right == true
+    runs-on: ubuntu-latest
     steps:
-      - run: |
-          echo 'left'
-    name: Run the right option
-    if: inputs.left-or-right == false
-    steps:
-      - run: |
-          echo 'right'
+    - name: Run the left option
+      if: inputs.left-or-right == true
+      run: |
+        echo 'left'
+    - name: Run the right option
+      if: inputs.left-or-right == false
+      run: |
+        echo 'right'
   
