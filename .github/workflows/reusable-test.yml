@@ -5,7 +5,7 @@ on:
     inputs:
       left-or-right:
         required: true
-        default: left
+        default: true
         type: boolean
 
 jobs:
