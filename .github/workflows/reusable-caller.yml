@@ -9,9 +9,6 @@ concurrency:
 
 jobs:
   call-reusable-test:
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v4
-    - uses: ./.github/workflows/reusable-test.yml
-      with:
-        left-or-right: true
+    uses: ./.github/workflows/reusable-test.yml
+    with:
+      left-or-right: true
