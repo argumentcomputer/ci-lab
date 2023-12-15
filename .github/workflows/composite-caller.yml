@@ -5,6 +5,7 @@ on:
 
 jobs:
   call-composite-test:
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/composite-test.yml
