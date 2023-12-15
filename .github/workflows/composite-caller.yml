@@ -10,7 +10,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           repository: lurk-lab/ci-lab
-      - uses: ./.github/actions
+      - uses: ./.github/actions/composite-test
         id: rng
         with:
           who-to-greet: 'Composite Action'
