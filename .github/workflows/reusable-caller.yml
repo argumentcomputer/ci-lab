@@ -9,6 +9,6 @@ concurrency:
 
 jobs:
   call-reusable-test:
-    uses: ./.github/workflows/reusable-test.yml
+    uses: lurk-lab/ci-lab/.github/workflows/reusable-test.yml@main
     with:
       left-or-right: true
