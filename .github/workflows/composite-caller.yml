@@ -8,7 +8,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: lurk-lab/ci-lab/.github/actions
+        with:
+          repository: lurk-lab/ci-lab
+      - uses: ./.github/actions
         id: rng
         with:
           who-to-greet: 'Composite Action'
