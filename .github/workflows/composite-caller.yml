@@ -1,0 +1,15 @@
+name: 'Test local composite action'
+
+on:
+  workflow_dispatch:
+
+jobs:
+  call-composite-test:
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/workflows/composite-test.yml
+        id: rng
+        with:
+          who-to-greet: 'Composite Action'
+      - run: |
+          echo "Random number: ${{ steps.id.outputs.random-number }}"
