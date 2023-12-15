@@ -16,3 +16,5 @@ jobs:
           who-to-greet: 'Composite Action'
       - run: |
           echo "Random number: ${{ steps.id.outputs.random-number }}"
+          echo "${{ env.TEST_ENV_VAR }}"
+          env | grep -E "TEST"
