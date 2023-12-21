@@ -13,6 +13,7 @@ jobs:
       - uses: actions/checkout@v4
       # Install dependencies
       - uses: dtolnay/rust-toolchain@stable
+        id: toolchain
       # Check toolchain version matches latest stable
       # Errors on deprecated `rust-toolchain` file
       # Does nothing if no `rust-toolchain.toml` file
