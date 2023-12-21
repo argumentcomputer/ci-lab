@@ -12,8 +12,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       # Install dependencies
-      - run: |
-          rustup show
+      - uses: dtolnay-rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
       - run: |
           cargo bench
