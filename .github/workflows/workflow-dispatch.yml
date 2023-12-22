@@ -11,11 +11,17 @@ concurrency:
 jobs:
   gpu-benchmark:
     name: Run local fibonacci bench
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, gpu-bench]
     steps:
       - uses: actions/checkout@v4
+        with:
+          repository: lurk-lab/ci-workflows
+      - uses: ./.github/actions/gpu-setup
+        with:
+          gpu-framework: 'cuda'
+      - uses: actions/checkout@v4
       # Install dependencies
-      - uses: actions-rs/toolchain@v1
+      - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
       - uses: taiki-e/install-action@v2
         with:
@@ -28,7 +34,7 @@ jobs:
         run: echo "LURK_BENCH_OUTPUT=commit-comment" | tee -a $GITHUB_ENV
       - name: Run GPU bench on branch
         run: |
-          just --dotenv-filename bench.env bench fibonacci
+          just --dotenv-filename bench.env gpu-bench fibonacci
           cp ${{ github.sha }}.json ..
         working-directory: ${{ github.workspace }}/benches
       - name: copy the benchmark template and prepare it with data
