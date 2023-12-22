@@ -9,7 +9,7 @@ commit := `git rev-parse HEAD`
 bench +benches:
   #!/bin/sh
   # Ensure the cargo env is passed to `just`
-  export $PATH=${CARGO_HOME:-$HOME/.cargo}/bin:$PATH
+  export PATH=${CARGO_HOME:-$HOME/.cargo}/bin:$PATH
   if [ '{{benches}}' != '' ]; then
     for bench in {{benches}}; do
       cargo criterion --bench $bench --message-format=json 2>&1 > {{commit}}.json
@@ -22,7 +22,7 @@ bench +benches:
 gpu-bench +benches:
   #!/bin/sh
   # Ensure the cargo env is passed to `just`
-  export $PATH=${CARGO_HOME:-$HOME/.cargo}/bin:$PATH
+  export PATH=${CARGO_HOME:-$HOME/.cargo}/bin:$PATH
   # The `compute`/`sm` number corresponds to the Nvidia GPU architecture
   # In this case, the self-hosted machine uses the Ampere architecture, but we want this to be configurable
   # See https://arnon.dk/matching-sm-architectures-arch-and-gencode-for-various-nvidia-cards/
