@@ -79,10 +79,9 @@ jobs:
           PR_NUMBER: ${{ github.event.issue.number }}
       # Install dependencies
       - uses: dtolnay/rust-toolchain@stable
-      - run: |
-          rustup show
-          rustc -V
-          cargo --version
+      - run: rustup show
+      - run: rustc -vV
+      - run: cargo --version
       - uses: Swatinem/rust-cache@v2
       - name: Load env vars
         run: |
