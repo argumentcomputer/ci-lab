@@ -38,7 +38,8 @@ jobs:
       # Install dependencies
       - name: Install dependencies
         run: sudo apt-get install -y pkg-config libssl-dev
-      - uses: actions-rs/toolchain@v1
+      - uses: dtolnay/rust-toolchain@stable
+      - run: which cargo
       - uses: Swatinem/rust-cache@v2
       - name: Load env vars
         run: |
@@ -79,10 +80,10 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           PR_NUMBER: ${{ github.event.issue.number }}
       # Install dependencies
-      #- uses: dtolnay/rust-toolchain@stable
+      - uses: dtolnay/rust-toolchain@stable
       - run: rustup show
       - run: |
-          which rustup
+          #which rustup
           which rustc
           which cargo
       - run: rustc -vV
