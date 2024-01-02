@@ -78,7 +78,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           PR_NUMBER: ${{ github.event.issue.number }}
       # Install dependencies
-      - uses: dtolnay/rust-toolchain@stable
+      #- uses: dtolnay/rust-toolchain@stable
       - run: rustup show
       - run: |
           which rustup
