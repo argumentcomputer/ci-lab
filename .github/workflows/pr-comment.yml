@@ -80,6 +80,10 @@ jobs:
       # Install dependencies
       - uses: dtolnay/rust-toolchain@stable
       - run: rustup show
+      - run: |
+          which rustup
+          which rustc
+          which cargo
       - run: rustc -vV
       - run: cargo --version
       - run: echo $PATH
