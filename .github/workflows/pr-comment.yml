@@ -77,8 +77,6 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
       - run: rustup show
       - run: |
-          echo "PATH=${PATH}:/root/.cargo/bin" | tee -a $GITHUB_PATH
-          echo $GITHUB_PATH
           echo $PATH
       - run: |
           which cargo
