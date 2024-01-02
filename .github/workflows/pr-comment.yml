@@ -71,6 +71,7 @@ jobs:
       - uses: ./.github/actions/gpu-setup
         with:
           gpu-framework: 'cuda'
+      - uses: ./.github/actions/ci-env
       - uses: actions/checkout@v4
       - name: Checkout PR branch
         run: gh pr checkout $PR_NUMBER
