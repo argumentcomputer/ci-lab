@@ -23,12 +23,6 @@ jobs:
     steps:
       - uses: xt0rted/pull-request-comment-branch@v2
         id: comment-branch
-      - name: Exit if base branch is `main`
-        if: ${{ steps.comment-branch.outputs.base_ref == 'main' }}
-        run: |
-          echo "Cannot run benchmarks on PR targeting `main`"
-          exit 1
-        continue-on-error: false
       - uses: actions/checkout@v4
       - name: Checkout PR branch
         run: gh pr checkout $PR_NUMBER
