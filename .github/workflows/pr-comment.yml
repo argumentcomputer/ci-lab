@@ -82,7 +82,7 @@ jobs:
       - run: rustup show
       - run: rustc -vV
       - run: cargo --version
-      - run: echo ${{ env.PATH }}
+      - run: echo $PATH
       - run: cargo check
       - run: cargo install critcmp
       - uses: Swatinem/rust-cache@v2
