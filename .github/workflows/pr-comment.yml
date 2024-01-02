@@ -78,8 +78,8 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           PR_NUMBER: ${{ github.event.issue.number }}
       # Install dependencies
-      - uses: dtolnay/rust-toolchain@stable
-      #- uses: actions-rs/toolchain@v1
+      #- uses: dtolnay/rust-toolchain@stable
+      - uses: actions-rs/toolchain@v1
       - uses: Swatinem/rust-cache@v2
       - name: Load env vars
         run: |
