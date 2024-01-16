@@ -13,7 +13,7 @@ jobs:
       - name: Check for perf regression
         id: regression-check
         run: |
-          REGRESSIONS="1.00 1.00"
+          REGRESSIONS="1.4 2.00"
 
           echo $REGRESSIONS
    
