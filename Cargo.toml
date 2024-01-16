@@ -11,6 +11,9 @@ edition = "2021"
 criterion = "0.4"
 anyhow = "1.0"
 
+[features]
+cuda = []
+
 [[bench]]
 name = "fibonacci"
 harness = false
