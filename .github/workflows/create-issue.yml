@@ -2,21 +2,42 @@ on:
   pull_request:
     types: [opened, synchronize, reopened, ready_for_review]
     branches: [main]
-  merge_group:
 
-name: Create an issue on merge_group
+name: Create an issue
 
 jobs:
   open-issue:
-    if: github.event_name != 'pull_request' || github.event.action == 'enqueued'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Check for perf regression
+        id: regression-check
+        run: |
+          REGRESSIONS="1.00 1.00"
+
+          echo $REGRESSIONS
+   
+          if [ ! -z "${{ env.LURK_BENCH_NOISE_THRESHOLD}}" ]; then
+            REGRESSION_FACTOR=$(echo "${{ env.LURK_BENCH_NOISE_THRESHOLD }}+1" | bc)
+          else
+            REGRESSION_FACTOR=1.1
+          fi
+          echo "NOISE_THRESHOLD=$(echo "($REGRESSION_FACTOR-1)*100" | bc)" | tee -a $GITHUB_ENV
+  
+          for r in $REGRESSIONS
+          do
+            if (( $(echo "$r >= $REGRESSION_FACTOR" | bc -l) ))
+            then
+              exit 1
+            fi
+          done
+        continue-on-error: true
       # Not possible to use ${{ github.event.number }} with the `merge_group` trigger
       - name: Get PR number from merge branch
         run: |
           echo "PR_NUMBER=$(echo ${{ github.event.merge_group.head_ref }} | sed -e 's/.*pr-\(.*\)-.*/\1/')" | tee -a $GITHUB_ENV
       - uses: JasonEtco/create-an-issue@v2
+        if: steps.regression-check.outcome == 'failure'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PR_NUMBER: ${{ env.PR_NUMBER }}
