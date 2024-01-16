@@ -12,5 +12,4 @@ concurrency:
 
 jobs:
   call-reusable-test:
-    if: github.event_name != 'pull_request' || github.event.action == 'enqueued'
-    uses: lurk-lab/ci-workflows/.github/workflows/gpu-ci.yml@main
+    uses: lurk-lab/ci-workflows/.github/workflows/gpu-ci.yml@gpu-ci
