@@ -28,16 +28,16 @@ jobs:
           do
             if (( $(echo "$r >= $REGRESSION_FACTOR" | bc -l) ))
             then
-              exit 1
+              echo "regression=true" | tee -a $GITHUB_OUTPUT
             fi
           done
-        continue-on-error: true
       # Not possible to use ${{ github.event.number }} with the `merge_group` trigger
       - name: Get PR number from merge branch
+        if: steps.regression-check.outputs.regression == 'true'
         run: |
           echo "PR_NUMBER=$(echo ${{ github.event.merge_group.head_ref }} | sed -e 's/.*pr-\(.*\)-.*/\1/')" | tee -a $GITHUB_ENV
       - uses: JasonEtco/create-an-issue@v2
-        if: steps.regression-check.outcome == 'failure'
+        if: steps.regression-check.outputs.regression == 'true'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PR_NUMBER: ${{ env.PR_NUMBER }}
