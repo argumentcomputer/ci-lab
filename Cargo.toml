@@ -11,9 +11,20 @@ edition = "2021"
 criterion = "0.4"
 anyhow = "1.0"
 
+[features]
+cuda = []
+
 [[bench]]
 name = "fibonacci"
 harness = false
 
 [build-dependencies]
 vergen = { version = "8", features = ["build", "git", "gitcl"] }
+
+[profile.dev-ci]
+inherits = "dev"
+# By compiling dependencies with optimizations, performing tests gets much faster.
+opt-level = 3
+lto = "thin"
+incremental = false
+codegen-units = 16

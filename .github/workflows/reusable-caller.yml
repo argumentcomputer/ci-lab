@@ -1,7 +1,10 @@
 name: Test calling reusable workflow
 
 on:
-  workflow_dispatch:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+    branches: [main]
+  merge_group:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
@@ -9,6 +12,4 @@ concurrency:
 
 jobs:
   call-reusable-test:
-    uses: lurk-lab/ci-lab/.github/workflows/reusable-test.yml@main
-    with:
-      left-or-right: true
+    uses: lurk-lab/ci-workflows/.github/workflows/gpu-ci.yml@gpu-ci
