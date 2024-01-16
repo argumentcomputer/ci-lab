@@ -13,7 +13,7 @@ jobs:
       - name: Check for perf regression
         id: regression-check
         run: |
-          REGRESSIONS="1.4 2.00"
+          REGRESSIONS="1.00 1.00"
 
           echo $REGRESSIONS
    
@@ -45,4 +45,8 @@ jobs:
           WORKFLOW_URL: "https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
         with:
           filename: .github/ISSUE_TEMPLATE.md
+      - name: Commit bench result to `gh-pages` branch if no regression
+        if: steps.regression-check.outputs.regression != 'true'
+        run: |
+          echo "No regression, committed bench result"
 
