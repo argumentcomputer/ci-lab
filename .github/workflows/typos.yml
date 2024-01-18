@@ -45,7 +45,7 @@ jobs:
           branch: 'patch/fix-typos'
           body-path: ./_body.md
           labels: automated issue, documentation
-          add-paths:
+          add-paths: |
             ":(exclude)_body.md"
             ":(exclude)target/**"
             "**/*.rs"
