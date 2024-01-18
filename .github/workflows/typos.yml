@@ -1,0 +1,44 @@
+name: Check for typos
+
+on:
+  workflow_dispatch:
+
+jobs:
+  typos:
+    name: Typos
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install typos binary
+        run: cargo install typos-cli
+      - name: Check typos and write suggestions
+        id: typos
+        run: |
+          typos --write-changes > _typos.txt
+          if [[ `git status --porcelain --untracked-files=no` ]]; then
+            echo "output=true" | tee -a $GITHUB_OUTPUT
+          else
+            echo "output=false" | tee -a $GITHUB_OUTPUT
+          fi
+      - name: Create file for PR
+        if: steps.typos.output == 'true'
+        run: |
+          printf '%s\n' "Fixes typos found by running \`typos --write-changes\`
+          Commit: ${{ github.sha }}
+          Workflow run: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}" > _body.md
+          if [[ -s _typos.txt ]]; then
+            printf "The following typos could not be fixed:\n\`\`\`\n" >> _body.md
+            cat _typos.txt >> _body.md 
+            printf "\`\`\`" >> _body.md
+      # Note: Doesn't work for `push` or `pull_request` triggers
+      - name: Create pull request
+        if: steps.typos.output == 'true'
+        uses: peter-evans/create-pull-request@v5
+        with:
+          title: [automated] Fix typos
+          commit-message: [automated] Fix typos
+          # Test if this default will cause collisions
+          #branch: create-pull-request/patch
+          labels: automated issue,documentation
+          body-path: ./_body.md
+
