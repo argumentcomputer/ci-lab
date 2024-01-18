@@ -30,6 +30,7 @@ jobs:
             printf "The following typos could not be fixed:\n\`\`\`\n" >> _body.md
             cat _typos.txt >> _body.md 
             printf "\`\`\`" >> _body.md
+          fi
       # Note: Doesn't work for `push` or `pull_request` triggers
       - name: Create pull request
         if: steps.typos.output == 'true'
