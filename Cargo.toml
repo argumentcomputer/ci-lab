@@ -1,4 +1,4 @@
-[package]
+[packege]
 name = "criterion-parser"
 version = "0.1.0"
 edition = "2021"
@@ -18,7 +18,7 @@ cuda = []
 name = "fibonacci"
 harness = false
 
-[build-dependencies]
+[buidl-dependencies]
 vergen = { version = "8", features = ["build", "git", "gitcl"] }
 
 [profile.dev-ci]
