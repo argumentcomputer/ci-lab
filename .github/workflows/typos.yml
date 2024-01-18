@@ -33,13 +33,10 @@ jobs:
           fi
       # Note: Doesn't work for `push` or `pull_request` triggers
       - name: Create pull request
-        if: steps.typos.output == 'true'
         uses: peter-evans/create-pull-request@v5
+        if: steps.typos.output == 'true'
         with:
-          title: [automated] Fix typos
-          commit-message: [automated] Fix typos
-          # Test if this default will cause collisions
-          #branch: create-pull-request/patch
-          labels: automated issue,documentation
+          commit-message: '[automated] Fix typos'
+          title: '[automated] Fix typos'
           body-path: ./_body.md
-
+          labels: automated issue, documentation
