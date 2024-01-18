@@ -34,7 +34,6 @@ jobs:
             printf "\`\`\`" >> _body.md
           fi
           rm _typos.txt
-          echo "_body.md" >> .gitignore
       # Note: Doesn't work for `push` or `pull_request` triggers
       - name: Create pull request
         uses: peter-evans/create-pull-request@v5
@@ -46,11 +45,11 @@ jobs:
           delete-branch: true
           body-path: ./_body.md
           labels: automated issue, documentation
-          add-paths: |
-            ":(exclude)_body.md"
-            ":(exclude)target/**"
-            "**/*.rs"
-            "**/*.md"
-            "**/*.toml"
-            "**/*.txt"
-            "**/*.lurk"
+            #add-paths: |
+            #  ":(exclude)_body.md"
+            #  ":(exclude)target/**"
+            #  "**/*.rs"
+            #  "**/*.md"
+            #  "**/*.toml"
+            #  "**/*.txt"
+            #  "**/*.lurk"
