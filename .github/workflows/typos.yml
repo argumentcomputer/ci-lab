@@ -33,6 +33,8 @@ jobs:
             cat _typos.txt >> _body.md 
             printf "\`\`\`" >> _body.md
           fi
+          rm _typos.txt
+          echo "_body.md" >> .gitignore
       # Note: Doesn't work for `push` or `pull_request` triggers
       - name: Create pull request
         uses: peter-evans/create-pull-request@v5
@@ -40,5 +42,6 @@ jobs:
         with:
           commit-message: '[automated] Fix typos'
           title: '[automated] Fix typos'
+          branch: 'patch/fix-typos'
           body-path: ./_body.md
           labels: automated issue, documentation
