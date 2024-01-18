@@ -45,11 +45,11 @@ jobs:
           delete-branch: true
           body-path: ./_body.md
           labels: automated issue, documentation
-            #add-paths: |
-            #  ":(exclude)_body.md"
-            #  ":(exclude)target/**"
-            #  "**/*.rs"
-            #  "**/*.md"
-            #  "**/*.toml"
-            #  "**/*.txt"
-            #  "**/*.lurk"
+          add-paths: |
+            "**/*.rs"
+            "**/*.md"
+            "**/*.toml"
+            "**/*.txt"
+            "**/*.lurk"
+            ":!*_body.md"
+            ":!target/**"
