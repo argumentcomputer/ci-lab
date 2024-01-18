@@ -10,7 +10,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Install typos binary
-        run: cargo install typos-cli
+        run: cargo +stable install typos-cli
       - name: Check typos and write suggestions
         id: typos
         run: |
