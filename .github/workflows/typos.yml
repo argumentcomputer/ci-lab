@@ -10,8 +10,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
       - name: Install typos binary
-        run: cargo +stable install typos-cli --force
+        run: cargo +stable install typos-cli
       - name: Check typos and write suggestions
         id: typo-check
         run: |
