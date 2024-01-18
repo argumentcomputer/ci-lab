@@ -14,16 +14,16 @@ jobs:
       - name: Install typos binary
         run: cargo +stable install typos-cli
       - name: Check typos and write suggestions
-        id: typos
+        id: typo-check
         run: |
           typos --write-changes > _typos.txt
           if [[ `git status --porcelain --untracked-files=no` ]]; then
-            echo "output=true" | tee -a $GITHUB_OUTPUT
+            echo "typos=true" | tee -a $GITHUB_OUTPUT
           else
-            echo "output=false" | tee -a $GITHUB_OUTPUT
+            echo "typos=false" | tee -a $GITHUB_OUTPUT
           fi
       - name: Create file for PR
-        if: steps.typos.output == 'true'
+        if: steps.typo-check.outputs.typos == 'true'
         run: |
           printf '%s\n' "Fixes typos found by running \`typos --write-changes\`
           Commit: ${{ github.sha }}
@@ -36,7 +36,7 @@ jobs:
       # Note: Doesn't work for `push` or `pull_request` triggers
       - name: Create pull request
         uses: peter-evans/create-pull-request@v5
-        if: steps.typos.output == 'true'
+        if: steps.typo-check.outputs.typos == 'true'
         with:
           commit-message: '[automated] Fix typos'
           title: '[automated] Fix typos'
