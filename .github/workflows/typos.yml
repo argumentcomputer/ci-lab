@@ -46,10 +46,10 @@ jobs:
           body-path: ./_body.md
           labels: automated issue, documentation
           add-paths: |
-            "**/*.rs"
-            "**/*.md"
-            "**/*.toml"
-            "**/*.txt"
-            "**/*.lurk"
-            ":!*_body.md"
-            ":!target/**"
+            '**/*.rs'
+            '**/*.md'
+            '**/*.toml'
+            '**/*.txt'
+            '**/*.lurk'
+            ':!*\_body.md'
+            ':!target/**'
