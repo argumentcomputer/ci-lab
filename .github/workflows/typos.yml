@@ -43,6 +43,7 @@ jobs:
           commit-message: '[automated] Fix typos'
           title: '[automated] Fix typos'
           branch: 'patch/fix-typos'
+          delete-branch: true
           body-path: ./_body.md
           labels: automated issue, documentation
           add-paths: |
