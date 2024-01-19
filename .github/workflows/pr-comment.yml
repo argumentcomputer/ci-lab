@@ -23,18 +23,6 @@ jobs:
     outputs:
       benches: ${{ steps.get-benches.outputs.benches }}
     steps:
-        # Get base branch of the PR
-      - uses: xt0rted/pull-request-comment-branch@v2
-        id: comment-branch
-      - uses: actions/checkout@v4
-      - name: Checkout PR branch
-        run: gh pr checkout $PR_NUMBER
-        env:
-          GH_TOKEN: ${{ github.token }}
-          PR_NUMBER: ${{ github.event.issue.number }}
-      # Install dependencies
-      - uses: dtolnay/rust-toolchain@stable
-      - uses: Swatinem/rust-cache@v2
       - name: Load env vars
         id: get-benches
         run: |
@@ -61,6 +49,7 @@ jobs:
       matrix:
         value: ${{ fromJSON(needs.setup.outputs.benches) }}
     steps:
+      - run: echo "${{ matrix.value }}"
       - uses: actions/checkout@v4
         with:
           repository: lurk-lab/ci-workflows
@@ -68,7 +57,18 @@ jobs:
         with:
           gpu-framework: 'cuda'
       - uses: ./.github/actions/ci-env
-      - run: echo "${{ matrix.value }}"
+        # Get base branch of the PR
+      - uses: xt0rted/pull-request-comment-branch@v2
+        id: comment-branch
+      - uses: actions/checkout@v4
+      - name: Checkout PR branch
+        run: gh pr checkout $PR_NUMBER
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.issue.number }}
+      # Install dependencies
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
       # Run the comparative benchmark and comment output on the PR
       - uses: boa-dev/criterion-compare-action@v3
         with:
