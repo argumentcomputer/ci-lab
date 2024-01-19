@@ -55,8 +55,10 @@ jobs:
           do
             echo $var | tee -a $GITHUB_ENV
           done
+          
+          echo $BENCHES
 
-          echo "benches=$BENCHES" | tee -a $GITHUB_OUTPUT
+          echo "benches=[\"fibonacci\"]" | tee -a $GITHUB_OUTPUT
           echo "FEATURES=$FEATURES" | tee -a $GITHUB_ENV
 
   gpu-benchmark:
