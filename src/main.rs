@@ -1,5 +1,5 @@
-# this can be overriden
+# this can be overridden
 fn main() {
     let outpus = "hello";
-    let typo = "fixin the isssue telephon";
+    let typo = "fixin the issue telephon";
 }
