@@ -41,7 +41,7 @@ jobs:
           
           echo $BENCHES
 
-          echo "benches=[\"fibonacci\", \"bench-test\"]" | tee -a $GITHUB_OUTPUT
+          echo "benches=[\"fibonacci\", \"bench_test\"]" | tee -a $GITHUB_OUTPUT
           echo "features=$FEATURES" | tee -a $GITHUB_OUTPUT
 
   gpu-benchmark:
