@@ -30,7 +30,7 @@ jobs:
         id: bench-params
         run: |
           printf "${{ github.event.comment.body }}" > comment.txt
-          BENCHES=$(awk '/Benches:/{f=1;next} /Features:/{f=0} f{print $0}' comment.txt)
+          BENCHES=$(awk '/Benches:/{f=1;next} /Features:/{f=0} f{gsub(/,/,"\",\"",$0); print "[\""$0"\"]"}' comment.txt)
           FEATURES=$(awk '/Features:/{f=1;next} /Env vars:/{f=0} f{print $0}' comment.txt)
           ENV_VARS=$(awk '/Env vars:/{f=1;next} /$EOF:/{f=0} f{print $0}' comment.txt)
 
@@ -39,9 +39,7 @@ jobs:
             echo $var | tee -a $GITHUB_ENV
           done
           
-          echo $BENCHES
-
-          echo "benches=[\"fibonacci\", \"bench_test\"]" | tee -a $GITHUB_OUTPUT
+          echo "benches=$BENCHES" | tee -a $GITHUB_OUTPUT
           echo "features=$FEATURES" | tee -a $GITHUB_OUTPUT
 
   gpu-benchmark:
