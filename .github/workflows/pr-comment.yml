@@ -21,12 +21,14 @@ jobs:
       && contains(github.event.comment.body, '!gpu-benchmark')
       && (github.event.comment.author_association == 'MEMBER' || github.event.comment.author_association == 'OWNER')
     outputs:
-      benches: ${{ steps.get-benches.outputs.benches }}
+      benches: ${{ steps.bench-params.outputs.benches }}
+      features: ${{ steps.bench-params.outputs.features }}
+      env-vars: ${{ steps.bench-params.outputs.env-vars }}
+
     steps:
       - name: Load env vars
-        id: get-benches
+        id: bench-params
         run: |
-          echo "LURK_BENCH_OUTPUT=pr-comment" | tee -a $GITHUB_ENV
           printf "${{ github.event.comment.body }}" > comment.txt
           BENCHES=$(awk '/Benches:/{f=1;next} /Features:/{f=0} f{print $0}' comment.txt)
           FEATURES=$(awk '/Features:/{f=1;next} /Env vars:/{f=0} f{print $0}' comment.txt)
@@ -39,8 +41,8 @@ jobs:
           
           echo $BENCHES
 
-          echo "benches=[\"fibonacci\"]" | tee -a $GITHUB_OUTPUT
-          echo "FEATURES=$FEATURES" | tee -a $GITHUB_ENV
+          echo "benches=[\"fibonacci\", \"bench-test\"]" | tee -a $GITHUB_OUTPUT
+          echo "features=$FEATURES" | tee -a $GITHUB_OUTPUT
 
   gpu-benchmark:
     needs: [ setup ]
@@ -49,7 +51,14 @@ jobs:
       matrix:
         value: ${{ fromJSON(needs.setup.outputs.benches) }}
     steps:
-      - run: echo "${{ matrix.value }}"
+      - name: Set env vars
+        run: |
+          echo "${{ matrix.value }}"
+          echo "LURK_BENCH_OUTPUT=pr-comment" | tee -a $GITHUB_ENV
+          for var in ${{ needs.setup.outputs.env-vars }} 
+          do
+            echo $var | tee -a $GITHUB_ENV
+          done
       - uses: actions/checkout@v4
         with:
           repository: lurk-lab/ci-workflows
@@ -76,6 +85,6 @@ jobs:
           # Optional. Compare only this benchmark target
           benchName: ${{ matrix.value }}
           # Optional. Features activated in the benchmark
-          features: "cuda,${{ env.FEATURES }}"
+          features: "cuda,${{ needs.setup.outputs.features }}"
           # Needed. The name of the branch to compare with
           branchName: ${{ steps.comment-branch.outputs.base_ref }}
