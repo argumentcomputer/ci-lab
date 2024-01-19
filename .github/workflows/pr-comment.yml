@@ -41,9 +41,10 @@ jobs:
       - name: Load env vars
         run: |
           echo "LURK_BENCH_OUTPUT=pr-comment" >> $GITHUB_ENV
-          BENCHES=$(awk '/Benches:/{f=1;next} /Features:/{f=0} f{print $0}' ${{ github.event.comment.body }})
-          FEATURES=$(awk '/Features:/{f=1;next} /Env vars:/{f=0} f{print $0}' ${{ github.event.comment.body }})
-          ENV_VARS=$(awk '/Env vars:/{f=1;next} /$EOF:/{f=0} f{print $0}' ${{ github.event.comment.body }})
+          echo ${{ github.event.comment.body }} > comment.txt
+          BENCHES=$(awk '/Benches:/{f=1;next} /Features:/{f=0} f{print $0}' comment.txt)
+          FEATURES=$(awk '/Features:/{f=1;next} /Env vars:/{f=0} f{print $0}' comment.txt)
+          ENV_VARS=$(awk '/Env vars:/{f=1;next} /$EOF:/{f=0} f{print $0}' comment.txt)
 
           echo $BENCHES
           echo $FEATURES
