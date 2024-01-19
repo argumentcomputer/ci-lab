@@ -12,45 +12,6 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  cpu-benchmark:
-    name: run fibonacci benchmark
-    runs-on: ubuntu-latest
-    if:
-      github.event.issue.pull_request
-      && github.event.issue.state == 'open'
-      && contains(github.event.comment.body, '!benchmark')
-      && (github.event.comment.author_association == 'MEMBER' || github.event.comment.author_association == 'OWNER')
-    steps:
-      - uses: xt0rted/pull-request-comment-branch@v2
-        id: comment-branch
-      - uses: actions/checkout@v4
-      - name: Checkout PR branch
-        run: gh pr checkout $PR_NUMBER
-        env:
-          GH_TOKEN: ${{ github.token }}
-          PR_NUMBER: ${{ github.event.issue.number }}
-      # Install dependencies
-      - name: Install dependencies
-        run: sudo apt-get install -y pkg-config libssl-dev
-      - uses: dtolnay/rust-toolchain@stable
-      - run: which cargo
-      - uses: Swatinem/rust-cache@v2
-      - name: Load env vars
-        run: |
-          set -a
-          source bench.env
-          set +a
-          echo "LURK_BENCH_OUTPUT=pr-comment" >> $GITHUB_ENV
-          env | grep 'LURK'
-        working-directory: ${{ github.workspace }}/benches
-      # Run the comparative benchmark and comment output on the PR
-      - uses: boa-dev/criterion-compare-action@v3
-        with:
-          # Optional. Compare only this benchmark target
-          benchName: "fibonacci"
-          # Needed. The name of the branch to compare with
-          branchName: ${{ github.ref_name }}
-
   gpu-benchmark:
     name: run fibonacci benchmark on GPU
     runs-on: [self-hosted, gpu-bench]
@@ -75,32 +36,34 @@ jobs:
           PR_NUMBER: ${{ github.event.issue.number }}
       # Install dependencies
       - uses: dtolnay/rust-toolchain@stable
-      - run: rustup show
-      - run: |
-          echo $PATH
-      - run: |
-          which cargo
-          which rustc
-          which rustup
-      - run: rustc -vV
-      - run: cargo --version
-      - run: echo $PATH
-      - run: cargo check
-      - run: cargo install critcmp
       - uses: Swatinem/rust-cache@v2
+        #- run: cargo install critcmp
       - name: Load env vars
         run: |
           echo "LURK_BENCH_OUTPUT=pr-comment" >> $GITHUB_ENV
-        working-directory: ${{ github.workspace }}/benches
-      - uses: cardinalby/export-env-action@v2
-        with:
-          envFile: 'benches/bench.env'
-          expand: true
+          BENCHES=$(awk '/Benches:/{f=1;next} /Features:/{f=0} f{print $0}' ${{ github.event.comment.body }})
+          FEATURES=$(awk '/Features:/{f=1;next} /Env vars:/{f=0} f{print $0}' ${{ github.event.comment.body }})
+          ENV_VARS=$(awk '/Env vars:/{f=1;next} /$EOF:/{f=0} f{print $0}' ${{ github.event.comment.body }})
+
+          echo $BENCHES
+          echo $FEATURES
+          echo $ENV_VARS
+
+          for var in $ENV_VARS
+          do
+            echo $var | tee -a $GITHUB_ENV
+          done
+
+          echo "BENCHES=$BENCHES" | tee -a $GITHUB_ENV
+          echo "FEATURES=$FEATURES" | tee -a $GITHUB_ENV
+
       # Run the comparative benchmark and comment output on the PR
       - uses: boa-dev/criterion-compare-action@v3
         with:
           # Note: Removing `benchName` causes `criterion` errors: https://github.com/boa-dev/criterion-compare-action#troubleshooting
           # Optional. Compare only this benchmark target
-          benchName: "fibonacci"
+          benchName: ${{ env.BENCHES }}
+          # Optional. Features activated in the benchmark
+          features: "cuda,${{ env.FEATURES }}"
           # Needed. The name of the branch to compare with
           branchName: ${{ github.ref_name }}
