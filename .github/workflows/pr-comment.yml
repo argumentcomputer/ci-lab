@@ -23,13 +23,6 @@ jobs:
     outputs:
       benches: ${{ steps.get-benches.outputs.benches }}
     steps:
-      - uses: actions/checkout@v4
-        with:
-          repository: lurk-lab/ci-workflows
-      - uses: ./.github/actions/gpu-setup
-        with:
-          gpu-framework: 'cuda'
-      - uses: ./.github/actions/ci-env
         # Get base branch of the PR
       - uses: xt0rted/pull-request-comment-branch@v2
         id: comment-branch
@@ -68,6 +61,13 @@ jobs:
       matrix:
         value: ${{ fromJSON(needs.setup.outputs.benches) }}
     steps:
+      - uses: actions/checkout@v4
+        with:
+          repository: lurk-lab/ci-workflows
+      - uses: ./.github/actions/gpu-setup
+        with:
+          gpu-framework: 'cuda'
+      - uses: ./.github/actions/ci-env
       - run: echo "${{ matrix.value }}"
       # Run the comparative benchmark and comment output on the PR
       - uses: boa-dev/criterion-compare-action@v3
