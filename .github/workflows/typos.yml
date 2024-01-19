@@ -16,7 +16,6 @@ jobs:
       - name: Check typos and write suggestions
         id: typo-check
         run: |
-          #typos --write-changes --exclude _typos.txt >  _typos.txt || true
           typos --write-changes > _typos.txt || true
           cat _typos.txt
           if [[ `git status --porcelain --untracked-files=no` ]]; then
