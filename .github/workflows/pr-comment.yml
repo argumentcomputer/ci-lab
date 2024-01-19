@@ -12,14 +12,16 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  gpu-benchmark:
-    name: run fibonacci benchmark on GPU
-    runs-on: [self-hosted, gpu-bench]
+  setup:
+    name: Set up benchmark parameters
+    runs-on: ubuntu-latest
     if:
       github.event.issue.pull_request
       && github.event.issue.state == 'open'
       && contains(github.event.comment.body, '!gpu-benchmark')
       && (github.event.comment.author_association == 'MEMBER' || github.event.comment.author_association == 'OWNER')
+    outputs:
+      benches: ${{ steps.get-benches.outputs.benches }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -28,6 +30,9 @@ jobs:
         with:
           gpu-framework: 'cuda'
       - uses: ./.github/actions/ci-env
+        # Get base branch of the PR
+      - uses: xt0rted/pull-request-comment-branch@v2
+        id: comment-branch
       - uses: actions/checkout@v4
       - name: Checkout PR branch
         run: gh pr checkout $PR_NUMBER
@@ -37,34 +42,37 @@ jobs:
       # Install dependencies
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
-        #- run: cargo install critcmp
       - name: Load env vars
+        id: get-benches
         run: |
-          echo "LURK_BENCH_OUTPUT=pr-comment" >> $GITHUB_ENV
+          echo "LURK_BENCH_OUTPUT=pr-comment" | tee -a $GITHUB_ENV
           printf "${{ github.event.comment.body }}" > comment.txt
           BENCHES=$(awk '/Benches:/{f=1;next} /Features:/{f=0} f{print $0}' comment.txt)
           FEATURES=$(awk '/Features:/{f=1;next} /Env vars:/{f=0} f{print $0}' comment.txt)
           ENV_VARS=$(awk '/Env vars:/{f=1;next} /$EOF:/{f=0} f{print $0}' comment.txt)
-
-          echo $BENCHES
-          echo $FEATURES
-          echo $ENV_VARS
 
           for var in $ENV_VARS
           do
             echo $var | tee -a $GITHUB_ENV
           done
 
-          echo "BENCHES=$BENCHES" | tee -a $GITHUB_ENV
+          echo "benches=$BENCHES" | tee -a $GITHUB_OUTPUT
           echo "FEATURES=$FEATURES" | tee -a $GITHUB_ENV
 
+  gpu-benchmark:
+    needs: [ setup ]
+    runs-on: [self-hosted, gpu-bench]
+    strategy:
+      matrix:
+        value: ${{ fromJSON(needs.setup.outputs.benches }}
+    steps:
       # Run the comparative benchmark and comment output on the PR
       - uses: boa-dev/criterion-compare-action@v3
         with:
           # Note: Removing `benchName` causes `criterion` errors: https://github.com/boa-dev/criterion-compare-action#troubleshooting
           # Optional. Compare only this benchmark target
-          benchName: ${{ env.BENCHES }}
+          benchName: ${{ matrix.value }}
           # Optional. Features activated in the benchmark
           features: "cuda,${{ env.FEATURES }}"
           # Needed. The name of the branch to compare with
-          branchName: ${{ github.ref_name }}
+          branchName: ${{ steps.comment-branch.outputs.base_ref }}
