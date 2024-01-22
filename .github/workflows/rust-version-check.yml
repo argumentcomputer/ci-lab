@@ -1,0 +1,13 @@
+name: Rust version check
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+    branches: [main]
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  rust-version-check:
+    uses: samuelburnham/ci-workflows/.github/workflows/rust-version-check.yml@rust-version
