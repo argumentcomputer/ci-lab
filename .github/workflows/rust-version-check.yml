@@ -5,9 +5,42 @@ on:
     types: [opened, synchronize, reopened, ready_for_review]
     branches: [main]
 
-env:
-  CARGO_TERM_COLOR: always
-
 jobs:
   rust-version-check:
-    uses: samuelburnham/ci-workflows/.github/workflows/rust-version-check.yml@rust-version
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Parse rust-toolchain.toml
+        run: |
+          CHANNEL=$(rustup show | grep rustc | awk '{ print $2 }')
+          echo "TOOLCHAIN_VERSION=$(rustup show | grep rustc | awk '{ print $2 }')" | tee -a $GITHUB_ENV
+
+      - name: Get latest stable Rust version
+        run: echo "RUST_VERSION=$(rustup check | grep stable | awk '{print $(NF-2)}')" | tee -a $GITHUB_ENV
+
+      - name: Compare Rust versions
+        run: |
+          if [[ $TOOLCHAIN_VERSION < $RUST_VERSION ]]; then
+            echo "VERSION_MISMATCH=true" | tee -a $GITHUB_ENV
+          else
+            echo "VERSION_MISMATCH=false" | tee -a $GITHUB_ENV
+          fi
+
+      # Open issue if crate is out of date with stable
+      - uses: JasonEtco/create-an-issue@v2
+        if: env.VERSION_MISMATCH == 'true'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TOOLCHAIN_VERSION: ${{ env.TOOLCHAIN_VERSION }}
+          RUST_VERSION: ${{ env.RUST_VERSION }}
+          WORKFLOW_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          WORKFLOW_FILE: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}/workflow
+        with:
+          update_existing: true
+          filename: .github/templates/VERSION_CHECK.md
+
