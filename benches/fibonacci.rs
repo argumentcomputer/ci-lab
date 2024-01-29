@@ -31,24 +31,35 @@ pub fn fib_iter(n: u64) -> u64 {
     //1
 }
 
-#[derive(Clone, Debug, Copy)]
+#[derive(Clone, Debug)]
 struct ProveParams {
     fib_n: u64,
-    _reduction_count: usize,
-    date: &'static str,
-    sha: &'static str,
+    date: String,
+    sha: String,
 }
 
 impl ProveParams {
-    fn name_params(&self) -> (String, String) {
+    fn new(fib_n: u64) -> Self {
+        let date = env!("VERGEN_GIT_COMMIT_DATE").to_owned();
+        let mut sha = env!("VERGEN_GIT_SHA").to_owned();
+        sha.truncate(7);
+        Self { fib_n, date, sha }
+    }
+    fn group_name_params(&self) -> (String, String) {
         let output_type = bench_parameters_env().unwrap_or("stdout".into());
+
+        let mut short_sha = self.sha.to_owned();
+        short_sha.truncate(7);
         match output_type.as_ref() {
             "pr-comment" => ("fib".into(), format!("num-{}", self.fib_n)),
             "commit-comment" => (
-                format!("fib-ref={}", env!("VERGEN_GIT_SHA")),
+                format!("fib-ref={}", self.sha),
                 format!("num-{}", self.fib_n),
             ),
-            // TODO: refine "gh-pages",
+            "gh-pages" => (
+                format!("{}-{}", self.sha, self.date),
+                format!("num-{}", self.fib_n),
+            ),
             _ => (
                 "fib".into(),
                 format!("num-{}-{}-{}", self.fib_n, self.sha, self.date),
@@ -87,29 +98,20 @@ fn noise_threshold_env() -> anyhow::Result<f64> {
 }
 
 pub fn criterion_benchmark(c: &mut Criterion) {
-    let reduction_counts = rc_env().unwrap_or_else(|_| vec![100]);
-
-    for rc in reduction_counts.iter() {
-        let mut group = c.benchmark_group(format!("Fibonacci-rc={}", rc));
-
+    let nums: Vec<u64> = vec![10, 20];
+    for num in nums {
+        let mut group = c.benchmark_group(format!("Fibonacci-num={}", num));
         group.noise_threshold(noise_threshold_env().unwrap_or(0.05));
-        let nums: Vec<u64> = vec![10, 20];
 
-        for num in nums {
-            let prove_params = ProveParams {
-                fib_n: num,
-                _reduction_count: *rc,
-                date: env!("VERGEN_GIT_COMMIT_DATE"),
-                sha: env!("VERGEN_GIT_SHA"),
-            };
-            let (name, params) = prove_params.name_params();
-            //let id = BenchmarkId::new(format!("Recursive-{}", name), &params);
-            //group.bench_with_input(id, &num, |b, row| b.iter(|| fib_recur(black_box(*row))));
-
-            let id = BenchmarkId::new(format!("Iterative-{}", name), params);
+        let reduction_counts = rc_env().unwrap_or_else(|_| vec![100]);
+        for rc in reduction_counts.iter() {
+            let prove_params = ProveParams::new(num);
+            let id = BenchmarkId::new(
+                format!("{}-{}", prove_params.sha, prove_params.date),
+                format!("rc={}", rc),
+            );
             group.bench_with_input(id, &num, |b, row| b.iter(|| fib_iter(black_box(*row))));
         }
-
         group.finish();
     }
 }

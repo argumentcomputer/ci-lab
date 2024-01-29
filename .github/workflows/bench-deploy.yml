@@ -1,0 +1,59 @@
+name: GPU benchmark on `main`
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  benchmark:
+    name: Bench and deploy
+    runs-on: ubuntu-latest
+    steps:
+      # Install deps
+      - uses: actions/checkout@v4
+        with:
+          repository: lurk-lab/ci-workflows
+      - uses: ./.github/actions/ci-env
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - uses: taiki-e/install-action@v2
+        with:
+          tool: just@1.22.0
+      # Run benchmarks and deploy
+      - name: Get old benchmarks
+        uses: actions/checkout@v4
+        with:
+          ref: gh-pages
+          path: gh-pages
+      - name: Copy old benchmarks locally for comparison
+        run: mkdir -p target; cp -r gh-pages/benchmarks/criterion target;
+      - name: Install criterion
+        run: cargo install cargo-criterion
+      - name: Run benchmarks
+        run: |
+          just bench fibonacci
+          cp fibonacci-${{ github.sha }}.json ..
+        working-directory: ${{ github.workspace }}/benches
+      # TODO: Prettify labels for easier viewing
+      # Compress the benchmark file and metadata for later analysis
+      - name: Compress artifacts
+        run: |
+          echo $LABELS > labels.md
+          tar -cvzf fibonacci-${{ github.sha }}.tar.gz Cargo.lock fibonacci-${{ github.sha }}.json labels.md
+        working-directory: ${{ github.workspace }}
+      - name: Deploy latest benchmark report
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./target/criterion
+          destination_dir: benchmarks/criterion
+      - name: Copy benchmark json to history
+        run: mkdir history; cp fibonacci-${{ github.sha }}.tar.gz history/
+      - name: Deploy benchmark history
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: history/
+          destination_dir: benchmarks/history
+          keep_files: true
