@@ -1,8 +1,6 @@
 mod data;
 mod plot;
 
-//use data::read_json_from_file;
-//use plot::plot;
 use data::read_json_from_file;
 
 use crate::plot::{generate_plots, prepare_plots};
@@ -24,15 +22,13 @@ fn get_paths() -> std::io::Result<Vec<std::path::PathBuf>> {
 }
 
 fn main() {
-    //let path_a = std::path::Path::new("benches/87651f2.json");
-    let paths = get_paths().unwrap();
-    println!("{:?}", paths[1]);
+    let paths = get_paths().expect("FS read error");
 
+    let mut bench_data = vec![];
     for path in paths {
-        let data = read_json_from_file(paths).unwrap();
+        let mut data = read_json_from_file(path).expect("JSON serde error");
+        bench_data.append(&mut data);
     }
-    //let bench_data = read_json_from_file(&paths[1]).unwrap();
-    println!("{:?}", bench_data);
     let plot_data = prepare_plots(&bench_data);
     generate_plots(&plot_data).unwrap();
 }
