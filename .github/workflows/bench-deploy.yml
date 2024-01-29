@@ -26,10 +26,12 @@ jobs:
         with:
           ref: gh-pages
           path: gh-pages
-      - name: Copy old benchmarks locally for comparison
-        run: mkdir -p target; cp -r gh-pages/benchmarks/criterion target;
       - name: Install criterion
         run: cargo install cargo-criterion
+      - name: Copy old benchmarks locally for comparison
+        run: |
+          mkdir -p target gh-pages/benchmarks/criterion
+          cp -r gh-pages/benchmarks/criterion target
       # TODO: Check env vars work
       - name: Run benchmarks
         run: |
