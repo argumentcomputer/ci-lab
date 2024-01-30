@@ -53,6 +53,7 @@ jobs:
       - name: Generate historical performance plot
         run: |
           cargo run
+          mv -f plot-data.json history
       # TODO: Prettify labels for easier viewing
       # Compress the benchmark file and metadata for later analysis
       - name: Compress artifacts
@@ -60,7 +61,7 @@ jobs:
           mkdir -p history
           echo $LABELS > labels.md
           tar -cvzf fibonacci-${{ env.SHORT_SHA }}.tar.gz Cargo.lock fibonacci-${{ env.SHORT_SHA }}.json labels.md
-          cp fibonacci-${{ env.SHORT_SHA }}.tar.gz history
+          mv -f fibonacci-${{ env.SHORT_SHA }}.tar.gz history
         working-directory: ${{ github.workspace }}
         # TODO: Make links at each level of Lurk website so we can navigate without the raw URL
       - name: Prepare HTML pages
@@ -88,13 +89,13 @@ jobs:
 
           for FILE in `ls *.png | sort -g`; do
              if [[ -f $FILE ]]; then # Check if it's a regular file
-                 IMAGE="<img src=\"$FILE\" alt=\"Benchmark history plot for $FILE\" style=\"width:500px;height:500px;\"/>"
+                 IMAGE="<img src=\"$FILE\" alt=\"Benchmark history plot for $FILE\" style=\"width:1000px;height:1000px;\"/>"
                  echo $IMAGE
                  sed -i "/<\/body>/i\\$IMAGE" plots.html
              fi
           done
 
-          cp *.png plots.html history
+          mv -f *.png plots.html history
       - name: Deploy latest benchmark report
         uses: peaceiris/actions-gh-pages@v3
         with:
