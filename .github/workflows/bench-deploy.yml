@@ -30,7 +30,7 @@ jobs:
         run: cargo install cargo-criterion
       - name: Copy old benchmarks locally for comparison
         run: |
-          mkdir -p target gh-pages/benchmarks/criterion
+          mkdir -p target gh-pages/benchmarks/criterion history
           cp -r gh-pages/benchmarks/criterion target
       - name: Set env vars
         run: |
@@ -49,22 +49,22 @@ jobs:
         run: |
           echo $LABELS > labels.md
           tar -cvzf fibonacci-${{ env.SHORT_SHA }}.tar.gz Cargo.lock fibonacci-${{ env.SHORT_SHA }}.json labels.md
-        working-directory: ${{ github.workspace }}
+      # Outputs plots to `./history`
+      - name: Generate historical performance plot
+        run: |
+          cargo run
+      - name: Copy benchmark json to history
+        run: cp *.png fibonacci-${{ env.SHORT_SHA }}.tar.gz history/
       - name: Deploy latest benchmark report
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./target/criterion
           destination_dir: benchmarks/criterion
-      # Outputs plots to `./history`
-      - name: Generate historical performance plot
-        run: cargo run
-      - name: Copy benchmark json to history
-        run: cp fibonacci-${{ env.SHORT_SHA }}.tar.gz history/
       - name: Deploy benchmark history
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: history/
+          publish_dir: history
           destination_dir: benchmarks/history
           keep_files: true

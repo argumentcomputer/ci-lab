@@ -8,7 +8,7 @@ use crate::data::BenchData;
 
 pub fn generate_plots(data: &Plots) -> Result<(), Box<dyn Error>> {
     for plot in data.iter() {
-        let out_file_name = format!("history/{}.png", plot.0);
+        let out_file_name = format!("./{}.png", plot.0);
         let root = BitMapBackend::new(&out_file_name, (1024, 768)).into_drawing_area();
         root.fill(&WHITE)?;
 
@@ -64,9 +64,7 @@ pub fn generate_plots(data: &Plots) -> Result<(), Box<dyn Error>> {
         }
 
         // To avoid the IO failure being ignored silently, we manually call the present function
-        root.present().expect(
-            "Unable to write result to file, please make sure 'history' dir exists under current dir",
-        );
+        root.present().expect("Unable to write result to file");
         println!("Result has been saved to {}", out_file_name);
     }
 
