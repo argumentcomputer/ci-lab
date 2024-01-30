@@ -49,8 +49,8 @@ jobs:
         run: |
           if [ ! -f "plot-data.json" ]; then
             tar -xvzf gh-pages/benchmarks/history/*.tar.gz
+            cat gh-pages/benchmarks/history/*.tar.gz | tar -xvzf - -i
           fi
-          cp fibonacci-${{ env.SHORT_SHA }}.json gh-pages/benchmarks/history
           cargo run
       # TODO: Prettify labels for easier viewing
       # Compress the benchmark file and metadata for later analysis
@@ -59,7 +59,7 @@ jobs:
           mkdir -p history
           echo $LABELS > labels.md
           tar -cvzf fibonacci-${{ env.SHORT_SHA }}.tar.gz Cargo.lock fibonacci-${{ env.SHORT_SHA }}.json labels.md
-          cp fibonacci-${{ env.SHORT_SHA }}.tar.gz gh-pages/benchmarks/history
+          cp fibonacci-${{ env.SHORT_SHA }}.tar.gz history
         working-directory: ${{ github.workspace }}
         # TODO: Make links at each level of Lurk website so we can navigate without the raw URL
       - name: Prepare HTML pages
@@ -93,7 +93,7 @@ jobs:
              fi
           done
 
-          cp *.png plots.html gh-pages/benchmarks/history
+          cp *.png plots.html history
       - name: Deploy latest benchmark report
         uses: peaceiris/actions-gh-pages@v3
         with:
@@ -104,5 +104,6 @@ jobs:
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: benchmarks/history
+          publish_dir: ./history
+          destination_dir: benchmarks/history
           keep_files: true
