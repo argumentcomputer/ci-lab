@@ -10,6 +10,8 @@ bench +benches:
   #!/bin/sh
   # Ensure the cargo env is passed to `just`
   export PATH=${CARGO_HOME:-$HOME/.cargo}/bin:$PATH
+  #export LURK_BENCH_OUTPUT=gh-pages
+  #export LURK_RC=100,600
   if [ '{{benches}}' != '' ]; then
     for bench in {{benches}}; do
       cargo criterion --bench $bench --message-format=json 2>&1 > $bench-{{commit}}.json

@@ -1,6 +1,6 @@
 use plotters::prelude::*;
 
-use chrono::{Date, TimeZone, Utc};
+use chrono::{serde::ts_seconds, DateTime, Duration, NaiveDate, Utc};
 use serde::{Deserialize, Serialize};
 
 use std::{collections::HashMap, error::Error};
@@ -8,7 +8,6 @@ use std::{collections::HashMap, error::Error};
 use crate::json::BenchData;
 
 // TODO: Figure out how to include the commit hash as a label on the point or X-axis
-// TODO: Potentially account for commits on the same day by adding commit time to the benchmark ID
 pub fn generate_plots(data: &Plots) -> Result<(), Box<dyn Error>> {
     for plot in data.0.iter() {
         let out_file_name = format!("./{}.png", plot.0);
@@ -20,10 +19,20 @@ pub fn generate_plots(data: &Plots) -> Result<(), Box<dyn Error>> {
             .caption(plot.0, ("sans-serif", 40))
             .set_label_area_size(LabelAreaPosition::Left, 60)
             .set_label_area_size(LabelAreaPosition::Bottom, 40)
-            // TODO: Automatically adjust scales based on input
             .build_cartesian_2d(
-                (Utc.ymd(2023, 1, 1)..Utc::now().date()).monthly(),
-                0.0f64..2.0f64,
+                // Add one day buffer before and after
+                plot.1
+                    .x_axis
+                    .min
+                    .checked_sub_signed(Duration::days(1))
+                    .expect("DateTime underflow")
+                    ..plot
+                        .1
+                        .x_axis
+                        .max
+                        .checked_add_signed(Duration::days(1))
+                        .expect("DateTime overflow"),
+                plot.1.y_axis.min..plot.1.y_axis.max,
             )?;
 
         chart
@@ -37,11 +46,11 @@ pub fn generate_plots(data: &Plots) -> Result<(), Box<dyn Error>> {
             .draw()?;
 
         // Draws the lines of benchmark data points, one line/color per set of bench ID params e.g. `rc=100`
-        for (i, line) in plot.1 .0.iter().enumerate() {
+        for (i, line) in plot.1.lines.iter().enumerate() {
             // Draw lines between each point
             chart
                 .draw_series(LineSeries::new(
-                    line.1.iter().map(|p| (str_to_utc(&p.x), p.y)),
+                    line.1.iter().map(|p| (str_to_datetime(&p.x), p.y)),
                     Palette99::pick(i),
                 ))?
                 .label(line.0)
@@ -54,11 +63,9 @@ pub fn generate_plots(data: &Plots) -> Result<(), Box<dyn Error>> {
                 });
 
             // Draw dots on each point
-            chart.draw_series(
-                line.1
-                    .iter()
-                    .map(|p| Circle::new((str_to_utc(&p.x), p.y), 3, Palette99::pick(i).filled())),
-            )?;
+            chart.draw_series(line.1.iter().map(|p| {
+                Circle::new((str_to_datetime(&p.x), p.y), 3, Palette99::pick(i).filled())
+            }))?;
             chart
                 .configure_series_labels()
                 .background_style(WHITE)
@@ -74,23 +81,18 @@ pub fn generate_plots(data: &Plots) -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-// Convert <sha>-year-month-day to `Utc` object, discarding the commit
-fn str_to_utc(date_str: &str) -> Date<Utc> {
+// Convert <sha>-year-month-day to `DateTime<Utc>` object, discarding the commit
+fn str_to_datetime(date_str: &str) -> DateTime<Utc> {
     let date: Vec<u32> = date_str
         .split('-')
         .skip(1)
         .map(|s| s.parse().unwrap())
         .collect();
-    Utc.ymd(date[0] as i32, date[1], date[2])
-}
 
-// Historical benchmark result, showing the performance at a given Git commit
-#[derive(Debug, Serialize, Deserialize)]
-pub struct Point {
-    // Commit & date associated with benchmark
-    x: String,
-    // Benchmark time (avg.)
-    y: f64,
+    DateTime::<Utc>::from_utc(
+        NaiveDate::from_ymd(date[0] as i32, date[1], date[2]).and_hms(0, 0, 0),
+        Utc,
+    )
 }
 
 // Plots of benchmark results over time/Git history. This data structure is persistent between runs,
@@ -102,32 +104,126 @@ pub struct Point {
 // since they are expected to be different. Instead, we group different benchmark parameters
 // (e.g. `rc` value) onto the same graph to compare/contrast their impact on performance.
 #[derive(Debug, Serialize, Deserialize)]
-pub struct Plots(HashMap<String, Lines>);
+pub struct Plots(HashMap<String, Plot>);
 
 impl Plots {
     pub fn new() -> Self {
         Self(HashMap::new())
     }
 
-    // Converts a list of deserialized Criterion benchmark results into plotting-friendly format
+    // Converts a list of deserialized Criterion benchmark results into a plotting-friendly format,
+    // and adds the data to the `Plots` struct.
     pub fn add_data(&mut self, bench_data: &Vec<BenchData>) {
         for bench in bench_data {
             let point = Point {
                 x: bench.id.bench_name.to_owned(),
                 y: bench.result.time,
             };
+
             if self.0.get(&bench.id.group_name).is_none() {
-                self.0
-                    .insert(bench.id.group_name.to_owned(), Lines(HashMap::new()));
+                self.0.insert(bench.id.group_name.to_owned(), Plot::new());
             }
-            let lines = self.0.get_mut(&bench.id.group_name).unwrap();
-            if lines.0.get(&bench.id.params).is_none() {
-                lines.0.insert(bench.id.params.to_owned(), vec![]);
+            let plot = self.0.get_mut(&bench.id.group_name).unwrap();
+
+            let commit_date = str_to_datetime(&point.x);
+            plot.x_axis.set_min_max(commit_date);
+            plot.y_axis.set_min_max(point.y);
+
+            if plot.lines.get(&bench.id.params).is_none() {
+                plot.lines.insert(bench.id.params.to_owned(), vec![]);
             }
-            lines.0.get_mut(&bench.id.params).unwrap().push(point);
+            plot.lines.get_mut(&bench.id.params).unwrap().push(point);
         }
     }
 }
 
+// The data type for a plot: contains the range of X and Y values, and the line(s) to be drawn
 #[derive(Debug, Serialize, Deserialize)]
-pub struct Lines(HashMap<String, Vec<Point>>);
+pub struct Plot {
+    x_axis: XAxisRange,
+    y_axis: YAxisRange,
+    lines: HashMap<String, Vec<Point>>,
+}
+
+impl Plot {
+    pub fn new() -> Self {
+        Self {
+            x_axis: XAxisRange::default(),
+            y_axis: YAxisRange::default(),
+            lines: HashMap::new(),
+        }
+    }
+}
+
+// Historical benchmark result, showing the performance at a given Git commit
+#[derive(Debug, Serialize, Deserialize)]
+pub struct Point {
+    // Commit & date associated with benchmark
+    x: String,
+    // Benchmark time (avg.)
+    y: f64,
+}
+
+// Min. and max. X axis values for a given plot
+#[derive(Debug, Serialize, Deserialize)]
+pub struct XAxisRange {
+    #[serde(with = "ts_seconds")]
+    min: DateTime<Utc>,
+    #[serde(with = "ts_seconds")]
+    max: DateTime<Utc>,
+}
+
+// Starts with flipped min/max so they can be set by `Point` values as they are encountered
+impl Default for XAxisRange {
+    fn default() -> Self {
+        Self {
+            min: Utc::now(),
+            max: chrono::DateTime::<Utc>::MIN_UTC,
+        }
+    }
+}
+
+// Min. and max. Y axis values for a given plot
+#[derive(Debug, Serialize, Deserialize)]
+pub struct YAxisRange {
+    min: f64,
+    max: f64,
+}
+
+// Starts with flipped min/max so they can be set by `Point` values as they are encountered
+impl Default for YAxisRange {
+    fn default() -> Self {
+        Self {
+            min: f64::MAX,
+            max: f64::MIN,
+        }
+    }
+}
+
+// Checks if input is < the current min and/or > current max
+// If so, sets input as the new min and/or max respectively
+trait MinMax<T: PartialOrd> {
+    fn set_min_max(&mut self, value: T);
+}
+
+impl MinMax<DateTime<Utc>> for XAxisRange {
+    fn set_min_max(&mut self, value: DateTime<Utc>) {
+        if value < self.min {
+            self.min = value
+        }
+        if value > self.max {
+            self.max = value
+        }
+    }
+}
+
+impl MinMax<f64> for YAxisRange {
+    fn set_min_max(&mut self, value: f64) {
+        if value < self.min {
+            self.min = value
+        }
+        if value > self.max {
+            self.max = value
+        }
+    }
+}
