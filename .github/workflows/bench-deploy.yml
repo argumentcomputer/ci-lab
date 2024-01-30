@@ -43,13 +43,15 @@ jobs:
           just bench fibonacci
           mv fibonacci-${{ env.SHORT_SHA }}.json ..
         working-directory: ${{ github.workspace }}/benches
-      # Outputs plots to `gh-pages/plots`
-      # If no plot data found, unzip all historical bench results and re-create the plots
-      - name: Generate historical performance plot
+      - name: Check for existing plot data
         run: |
           if [ ! -f "plot-data.json" ]; then
             cat gh-pages/benchmarks/history/*.tar.gz | tar -xvzf - -i
           fi
+        continue-on-error: true
+      # If no plot data found, unzip all historical bench results and re-create the plots
+      - name: Generate historical performance plot
+        run: |
           cargo run
       # TODO: Prettify labels for easier viewing
       # Compress the benchmark file and metadata for later analysis
