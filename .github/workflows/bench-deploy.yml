@@ -41,7 +41,7 @@ jobs:
       - name: Run benchmarks
         run: |
           just bench fibonacci
-          cp fibonacci-${{ env.SHORT_SHA }}.json ..
+          cp fibonacci-${{ env.SHORT_SHA }}.json ../history
         working-directory: ${{ github.workspace }}/benches
       # Outputs plots to `./history`
       - name: Generate historical performance plot
@@ -53,8 +53,6 @@ jobs:
         run: |
           echo $LABELS > labels.md
           tar -cvzf fibonacci-${{ env.SHORT_SHA }}.tar.gz Cargo.lock fibonacci-${{ env.SHORT_SHA }}.json labels.md
-      - name: Copy benchmark json to history
-        run: cp *.png fibonacci-${{ env.SHORT_SHA }}.tar.gz history/
         # TODO: Make links at each level of Lurk website so we can navigate without the raw URL
       - name: Prepare HTML pages
         run: |
@@ -87,7 +85,7 @@ jobs:
              fi
           done
 
-          cp plots.html fibonacci-${{ env.SHORT_SHA }}.tar.gz history/
+          cp *.png plots.html fibonacci-${{ env.SHORT_SHA }}.tar.gz history/
       - name: Deploy latest benchmark report
         uses: peaceiris/actions-gh-pages@v3
         with:

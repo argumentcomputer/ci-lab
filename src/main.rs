@@ -7,7 +7,7 @@ use crate::plot::{generate_plots, prepare_plots};
 
 // TODO: Switch to camino
 fn get_paths() -> std::io::Result<Vec<std::path::PathBuf>> {
-    let entries = std::fs::read_dir(".")?
+    let entries = std::fs::read_dir("./history")?
         .flatten()
         .filter_map(|e| {
             let ext = e.path();
