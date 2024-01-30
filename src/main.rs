@@ -16,7 +16,7 @@ use crate::plot::{generate_plots, Plots};
 // E.g. if `suffix` is `abc1234.json` it will return "*abc1234.json"
 fn get_json_paths(suffix: Option<&str>) -> std::io::Result<Vec<std::path::PathBuf>> {
     let suffix = suffix.unwrap_or(".json");
-    let entries = std::fs::read_dir("./gh-pages/benchmarks/history")?
+    let entries = std::fs::read_dir(".")?
         .flatten()
         .filter_map(|e| {
             let ext = e.path();

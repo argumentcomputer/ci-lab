@@ -48,7 +48,6 @@ jobs:
       - name: Generate historical performance plot
         run: |
           if [ ! -f "plot-data.json" ]; then
-            tar -xvzf gh-pages/benchmarks/history/*.tar.gz
             cat gh-pages/benchmarks/history/*.tar.gz | tar -xvzf - -i
           fi
           cargo run
