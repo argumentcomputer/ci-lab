@@ -43,18 +43,29 @@ jobs:
           just bench fibonacci
           cp fibonacci-${{ env.SHORT_SHA }}.json ..
         working-directory: ${{ github.workspace }}/benches
+      # Outputs plots to `./history`
+      - name: Generate historical performance plot
+        run: |
+          cargo run
       # TODO: Prettify labels for easier viewing
       # Compress the benchmark file and metadata for later analysis
       - name: Compress artifacts
         run: |
           echo $LABELS > labels.md
           tar -cvzf fibonacci-${{ env.SHORT_SHA }}.tar.gz Cargo.lock fibonacci-${{ env.SHORT_SHA }}.json labels.md
-      # Outputs plots to `./history`
-      - name: Generate historical performance plot
-        run: |
-          cargo run
       - name: Copy benchmark json to history
         run: cp *.png fibonacci-${{ env.SHORT_SHA }}.tar.gz history/
+      - name: Prepare HTML pages
+        run: |
+          shopt -s nullglob  # Prevent errors if no matching files are found
+          
+          for filename in *.png; do
+              if [[ -f "$filename" ]]; then  # Check if it's a regular file
+                  echo "$filename"
+                  echo "<img src="$filename" alt="Benchmark history plot" />" >> plots.html
+              fi
+          done
+          cp plots.html fibonacci-${{ github.sha }}.tar.gz history/
       - name: Deploy latest benchmark report
         uses: peaceiris/actions-gh-pages@v3
         with:
