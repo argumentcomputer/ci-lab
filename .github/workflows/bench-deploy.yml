@@ -55,17 +55,39 @@ jobs:
           tar -cvzf fibonacci-${{ env.SHORT_SHA }}.tar.gz Cargo.lock fibonacci-${{ env.SHORT_SHA }}.json labels.md
       - name: Copy benchmark json to history
         run: cp *.png fibonacci-${{ env.SHORT_SHA }}.tar.gz history/
+        # TODO: Make links at each level of Lurk website so we can navigate without the raw URL
       - name: Prepare HTML pages
         run: |
+          if [[ ! -f plots.html ]]; then
+            html=$(cat << EOF
+          <!DOCTYPE html>
+          <html>
+          <head>
+          <style>
+          img {
+            width: 100%;
+          }
+          </style>
+          </head>
+          <body>
+          </body>
+          </html>
+          EOF
+          )
+            echo "$html" > plots.html
+          fi
+
           shopt -s nullglob  # Prevent errors if no matching files are found
-          
-          for filename in *.png; do
-              if [[ -f "$filename" ]]; then  # Check if it's a regular file
-                  echo "$filename"
-                  echo "<img src="$filename" alt="Benchmark history plot" />" >> plots.html
-              fi
+
+          for FILE in `ls *.png | sort -g`; do
+             if [[ -f $FILE ]]; then # Check if it's a regular file
+                 IMAGE="<img src=\"$FILE\" alt=\"Benchmark history plot for $FILE\" style=\"width:500px;height:500px;\"/>"
+                 echo $IMAGE
+                 sed -i "/<\/body>/i\\$IMAGE" plots.html
+             fi
           done
-          cp plots.html fibonacci-${{ github.sha }}.tar.gz history/
+
+          cp plots.html fibonacci-${{ env.SHORT_SHA }}.tar.gz history/
       - name: Deploy latest benchmark report
         uses: peaceiris/actions-gh-pages@v3
         with:
