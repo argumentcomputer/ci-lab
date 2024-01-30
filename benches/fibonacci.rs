@@ -34,16 +34,23 @@ pub fn fib_iter(n: u64) -> u64 {
 #[derive(Clone, Debug)]
 struct ProveParams {
     fib_n: u64,
-    date: String,
+    commit_timestamp: String,
     sha: String,
 }
 
 impl ProveParams {
     fn new(fib_n: u64) -> Self {
-        let date = env!("VERGEN_GIT_COMMIT_DATE").to_owned();
+        let mut commit_timestamp = env!("VERGEN_GIT_COMMIT_TIMESTAMP").to_owned();
+        // Truncate decimal seconds for readability
+        commit_timestamp.replace_range(19..29, "");
+        println!("{}", commit_timestamp);
         let mut sha = env!("VERGEN_GIT_SHA").to_owned();
         sha.truncate(7);
-        Self { fib_n, date, sha }
+        Self {
+            fib_n,
+            commit_timestamp,
+            sha,
+        }
     }
     fn group_name_params(&self) -> (String, String) {
         let output_type = bench_parameters_env().unwrap_or("stdout".into());
@@ -57,12 +64,12 @@ impl ProveParams {
                 format!("num-{}", self.fib_n),
             ),
             "gh-pages" => (
-                format!("{}-{}", self.sha, self.date),
+                format!("{}-{}", self.sha, self.commit_timestamp),
                 format!("num-{}", self.fib_n),
             ),
             _ => (
                 "fib".into(),
-                format!("num-{}-{}-{}", self.fib_n, self.sha, self.date),
+                format!("num-{}-{}-{}", self.fib_n, self.sha, self.commit_timestamp),
             ),
         }
     }
@@ -107,7 +114,7 @@ pub fn criterion_benchmark(c: &mut Criterion) {
         for rc in reduction_counts.iter() {
             let prove_params = ProveParams::new(num);
             let id = BenchmarkId::new(
-                format!("{}-{}", prove_params.sha, prove_params.date),
+                format!("{}-{}", prove_params.sha, prove_params.commit_timestamp),
                 format!("rc={}", rc),
             );
             group.bench_with_input(id, &num, |b, row| b.iter(|| fib_iter(black_box(*row))));

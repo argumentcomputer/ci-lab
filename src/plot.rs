@@ -1,6 +1,6 @@
 use plotters::prelude::*;
 
-use chrono::{serde::ts_seconds, DateTime, Duration, NaiveDate, Utc};
+use chrono::{serde::ts_seconds, DateTime, Duration, Utc};
 use serde::{Deserialize, Serialize};
 
 use std::{collections::HashMap, error::Error};
@@ -32,7 +32,8 @@ pub fn generate_plots(data: &Plots) -> Result<(), Box<dyn Error>> {
                         .max
                         .checked_add_signed(Duration::days(1))
                         .expect("DateTime overflow"),
-                plot.1.y_axis.min..plot.1.y_axis.max,
+                // Add 0.2 ns buffer before and after (not rigorous, based on a priori knowledge of Y axis units & values)
+                plot.1.y_axis.min - 0.2f64..plot.1.y_axis.max + 0.2f64,
             )?;
 
         chart
@@ -50,7 +51,9 @@ pub fn generate_plots(data: &Plots) -> Result<(), Box<dyn Error>> {
             // Draw lines between each point
             chart
                 .draw_series(LineSeries::new(
-                    line.1.iter().map(|p| (str_to_datetime(&p.x), p.y)),
+                    line.1
+                        .iter()
+                        .map(|p| (str_to_datetime(&p.x).expect("Timestamp parse error"), p.y)),
                     Palette99::pick(i),
                 ))?
                 .label(line.0)
@@ -64,7 +67,11 @@ pub fn generate_plots(data: &Plots) -> Result<(), Box<dyn Error>> {
 
             // Draw dots on each point
             chart.draw_series(line.1.iter().map(|p| {
-                Circle::new((str_to_datetime(&p.x), p.y), 3, Palette99::pick(i).filled())
+                Circle::new(
+                    (str_to_datetime(&p.x).expect("Timestamp parse error"), p.y),
+                    3,
+                    Palette99::pick(i).filled(),
+                )
             }))?;
             chart
                 .configure_series_labels()
@@ -81,17 +88,14 @@ pub fn generate_plots(data: &Plots) -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-// Convert <sha>-year-month-day to `DateTime<Utc>` object, discarding the commit
-fn str_to_datetime(date_str: &str) -> DateTime<Utc> {
-    let date: Vec<u32> = date_str
-        .split('-')
-        .skip(1)
-        .map(|s| s.parse().unwrap())
-        .collect();
+// Convert <short-sha>-year-month-day to `DateTime` object, discarding the commit
+fn str_to_datetime(input: &str) -> Result<DateTime<Utc>, Box<dyn Error>> {
+    // Removes the first 8 chars (assuming UTF8)
+    let datetime: &str = input.split_at(8).1;
 
-    DateTime::<Utc>::from_utc(
-        NaiveDate::from_ymd(date[0] as i32, date[1], date[2]).and_hms(0, 0, 0),
-        Utc,
+    DateTime::parse_from_rfc3339(datetime).map_or_else(
+        |e| Err(format!("Failed to parse string into `DateTime`: {}", e).into()),
+        |dt| Ok(dt.with_timezone(&Utc)),
     )
 }
 
@@ -125,7 +129,7 @@ impl Plots {
             }
             let plot = self.0.get_mut(&bench.id.group_name).unwrap();
 
-            let commit_date = str_to_datetime(&point.x);
+            let commit_date = str_to_datetime(&point.x).expect("Timestamp parse error");
             plot.x_axis.set_min_max(commit_date);
             plot.y_axis.set_min_max(point.y);
 

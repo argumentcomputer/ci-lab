@@ -33,9 +33,12 @@ impl<'de> Deserialize<'de> for BenchId {
         if id.len() != 3 {
             Err(serde::de::Error::custom("Expected 3 bench ID elements"))
         } else {
+            let bench_name = id[1].replace('_', ":");
             Ok(BenchId {
                 group_name: id[0].to_owned(),
-                bench_name: id[1].to_owned(),
+                // Criterion converts `:` to `_` the the timestamp as the former is JSON syntax,
+                // so we convert `_` back to `:` when deserializing
+                bench_name,
                 params: id[2].to_owned(),
             })
         }
