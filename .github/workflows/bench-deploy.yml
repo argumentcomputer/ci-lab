@@ -81,7 +81,7 @@ jobs:
           </html>
           EOF
           )
-            echo "$html" > plots.html
+            echo "$html" > index.html
           fi
 
           shopt -s nullglob  # Prevent errors if no matching files are found
@@ -90,7 +90,7 @@ jobs:
              if [[ -f $FILE ]]; then # Check if it's a regular file
                  IMAGE="<img src=\"$FILE\" alt=\"Benchmark history plot for $FILE\" style=\"width:500px;height:500px;\"/>"
                  echo $IMAGE
-                 sed -i "/<\/body>/i\\$IMAGE" plots.html
+                 sed -i "/<\/body>/i\\$IMAGE" index.html
              fi
           done
 
