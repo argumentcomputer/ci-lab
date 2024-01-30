@@ -1,13 +1,16 @@
 use plotters::prelude::*;
 
 use chrono::{Date, TimeZone, Utc};
+use serde::{Deserialize, Serialize};
 
 use std::{collections::HashMap, error::Error};
 
-use crate::data::BenchData;
+use crate::json::BenchData;
 
+// TODO: Figure out how to include the commit hash as a label on the point or X-axis
+// TODO: Potentially account for commits on the same day by adding commit time to the benchmark ID
 pub fn generate_plots(data: &Plots) -> Result<(), Box<dyn Error>> {
-    for plot in data.iter() {
+    for plot in data.0.iter() {
         let out_file_name = format!("./{}.png", plot.0);
         let root = BitMapBackend::new(&out_file_name, (1024, 768)).into_drawing_area();
         root.fill(&WHITE)?;
@@ -34,7 +37,7 @@ pub fn generate_plots(data: &Plots) -> Result<(), Box<dyn Error>> {
             .draw()?;
 
         // Draws the lines of benchmark data points, one line/color per set of bench ID params e.g. `rc=100`
-        for (i, line) in plot.1.iter().enumerate() {
+        for (i, line) in plot.1 .0.iter().enumerate() {
             // Draw lines between each point
             chart
                 .draw_series(LineSeries::new(
@@ -82,7 +85,7 @@ fn str_to_utc(date_str: &str) -> Date<Utc> {
 }
 
 // Historical benchmark result, showing the performance at a given Git commit
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct Point {
     // Commit & date associated with benchmark
     x: String,
@@ -90,36 +93,41 @@ pub struct Point {
     y: f64,
 }
 
-// Plots of benchmark results over time/Git history
-// `Plots` is a `HashMap` of the plot name and a  `HashMap` of lines
-// A line is a `HashMap` of the line name and a `Vec` of points
+// Plots of benchmark results over time/Git history. This data structure is persistent between runs,
+// saved to disk in `plot-data.json`, and is meant to be append-only to preserve historical results.
 //
 // Note:
 // Plots are separated by benchmark input e.g. Fibonacci `num-100`. It doesn't reveal much
 // information to view multiple benchmark input results on the same graph (e.g. fib-10 and fib-20),
 // since they are expected to be different. Instead, we group different benchmark parameters
 // (e.g. `rc` value) onto the same graph to compare/contrast their impact on performance.
-pub type Plots = HashMap<String, HashMap<String, Vec<Point>>>;
+#[derive(Debug, Serialize, Deserialize)]
+pub struct Plots(HashMap<String, Lines>);
 
-// TODO: Figure out how to include the commit hash as a label on the point or X-axis
-// TODO: Read/write plot data to disk as JSON and append new benchmarks only
-pub fn prepare_plots(benches: &Vec<BenchData>) -> Plots {
-    let mut plots: Plots = HashMap::new();
-
-    for bench in benches {
-        let point = Point {
-            x: bench.id.bench_name.to_owned(),
-            y: bench.result.time,
-        };
-        if plots.get(&bench.id.group_name).is_none() {
-            plots.insert(bench.id.group_name.to_owned(), HashMap::new());
-        }
-        let lines = plots.get_mut(&bench.id.group_name).unwrap();
-        if lines.get(&bench.id.params).is_none() {
-            lines.insert(bench.id.params.to_owned(), vec![]);
-        }
-        lines.get_mut(&bench.id.params).unwrap().push(point);
+impl Plots {
+    pub fn new() -> Self {
+        Self(HashMap::new())
     }
-    println!("{:?}", plots);
-    plots
+
+    // Converts a list of deserialized Criterion benchmark results into plotting-friendly format
+    pub fn add_data(&mut self, bench_data: &Vec<BenchData>) {
+        for bench in bench_data {
+            let point = Point {
+                x: bench.id.bench_name.to_owned(),
+                y: bench.result.time,
+            };
+            if self.0.get(&bench.id.group_name).is_none() {
+                self.0
+                    .insert(bench.id.group_name.to_owned(), Lines(HashMap::new()));
+            }
+            let lines = self.0.get_mut(&bench.id.group_name).unwrap();
+            if lines.0.get(&bench.id.params).is_none() {
+                lines.0.insert(bench.id.params.to_owned(), vec![]);
+            }
+            lines.0.get_mut(&bench.id.params).unwrap().push(point);
+        }
+    }
 }
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct Lines(HashMap<String, Vec<Point>>);

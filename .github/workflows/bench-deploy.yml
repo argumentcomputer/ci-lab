@@ -30,7 +30,7 @@ jobs:
         run: cargo install cargo-criterion
       - name: Copy old benchmarks locally for comparison
         run: |
-          mkdir -p target gh-pages/benchmarks/criterion history
+          mkdir -p target gh-pages/benchmarks/criterion
           cp -r gh-pages/benchmarks/criterion target
       - name: Set env vars
         run: |
@@ -41,18 +41,26 @@ jobs:
       - name: Run benchmarks
         run: |
           just bench fibonacci
-          cp fibonacci-${{ env.SHORT_SHA }}.json ../history
+          mv fibonacci-${{ env.SHORT_SHA }}.json ..
         working-directory: ${{ github.workspace }}/benches
-      # Outputs plots to `./history`
+      # Outputs plots to `gh-pages/plots`
+      # If no plot data found, unzip all historical bench results and re-create the plots
       - name: Generate historical performance plot
         run: |
+          if [ ! -f "plot-data.json" ]; then
+            tar -xvzf gh-pages/benchmarks/history/*.tar.gz
+          fi
+          cp fibonacci-${{ env.SHORT_SHA }}.json gh-pages/benchmarks/history
           cargo run
       # TODO: Prettify labels for easier viewing
       # Compress the benchmark file and metadata for later analysis
       - name: Compress artifacts
         run: |
+          mkdir -p history
           echo $LABELS > labels.md
           tar -cvzf fibonacci-${{ env.SHORT_SHA }}.tar.gz Cargo.lock fibonacci-${{ env.SHORT_SHA }}.json labels.md
+          cp fibonacci-${{ env.SHORT_SHA }}.tar.gz gh-pages/benchmarks/history
+        working-directory: ${{ github.workspace }}
         # TODO: Make links at each level of Lurk website so we can navigate without the raw URL
       - name: Prepare HTML pages
         run: |
@@ -85,7 +93,7 @@ jobs:
              fi
           done
 
-          cp *.png plots.html fibonacci-${{ env.SHORT_SHA }}.tar.gz history/
+          cp *.png plots.html gh-pages/benchmarks/history
       - name: Deploy latest benchmark report
         uses: peaceiris/actions-gh-pages@v3
         with:
@@ -96,6 +104,5 @@ jobs:
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: history
-          destination_dir: benchmarks/history
+          publish_dir: benchmarks/history
           keep_files: true
