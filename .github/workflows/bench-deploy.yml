@@ -32,20 +32,23 @@ jobs:
         run: |
           mkdir -p target gh-pages/benchmarks/criterion
           cp -r gh-pages/benchmarks/criterion target
+      - name: Set env vars
+        run: |
+          echo "SHORT_SHA=$(git rev-parse --short HEAD)" | tee -a $GITHUB_ENV
+          echo "LURK_BENCH_OUTPUT=gh-pages" | tee -a $GITHUB_ENV
+          echo "LURK_RC=100,600" | tee -a $GITHUB_ENV
       # TODO: Check env vars work
       - name: Run benchmarks
         run: |
-          LURK_BENCH_OUTPUT="gh-pages"
-          LURK_RC=100,600
           just bench fibonacci
-          cp fibonacci-${{ github.sha }}.json ..
+          cp fibonacci-${{ env.SHORT_SHA }}.json ..
         working-directory: ${{ github.workspace }}/benches
       # TODO: Prettify labels for easier viewing
       # Compress the benchmark file and metadata for later analysis
       - name: Compress artifacts
         run: |
           echo $LABELS > labels.md
-          tar -cvzf fibonacci-${{ github.sha }}.tar.gz Cargo.lock fibonacci-${{ github.sha }}.json labels.md
+          tar -cvzf fibonacci-${{ env.SHORT_SHA }}.tar.gz Cargo.lock fibonacci-${{ env.SHORT_SHA }}.json labels.md
         working-directory: ${{ github.workspace }}
       - name: Deploy latest benchmark report
         uses: peaceiris/actions-gh-pages@v3
@@ -57,7 +60,7 @@ jobs:
       - name: Generate historical performance plot
         run: cargo run
       - name: Copy benchmark json to history
-        run: cp fibonacci-${{ github.sha }}.tar.gz history/
+        run: cp fibonacci-${{ env.SHORT_SHA }}.tar.gz history/
       - name: Deploy benchmark history
         uses: peaceiris/actions-gh-pages@v3
         with:
