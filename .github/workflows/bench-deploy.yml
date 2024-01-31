@@ -53,12 +53,12 @@ jobs:
       - name: Generate historical performance plot
         run: |
           cargo run
+          mkdir -p history
           mv -f plot-data.json history
       # TODO: Prettify labels for easier viewing
       # Compress the benchmark file and metadata for later analysis
       - name: Compress artifacts
         run: |
-          mkdir -p history
           echo $LABELS > labels.md
           tar -cvzf fibonacci-${{ env.SHORT_SHA }}.tar.gz Cargo.lock fibonacci-${{ env.SHORT_SHA }}.json labels.md
           mv -f fibonacci-${{ env.SHORT_SHA }}.tar.gz history
