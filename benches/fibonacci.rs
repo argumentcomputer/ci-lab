@@ -43,7 +43,6 @@ impl ProveParams {
         let mut commit_timestamp = env!("VERGEN_GIT_COMMIT_TIMESTAMP").to_owned();
         // Truncate decimal seconds for readability
         commit_timestamp.replace_range(19..29, "");
-        println!("{}", commit_timestamp);
         let mut sha = env!("VERGEN_GIT_SHA").to_owned();
         sha.truncate(7);
         Self {
@@ -52,8 +51,8 @@ impl ProveParams {
             sha,
         }
     }
-    fn group_name_params(&self) -> (String, String) {
-        let output_type = bench_parameters_env().unwrap_or("stdout".into());
+    fn _group_name_params(&self) -> (String, String) {
+        let output_type = _bench_parameters_env().unwrap_or("stdout".into());
 
         let mut short_sha = self.sha.to_owned();
         short_sha.truncate(7);
@@ -75,7 +74,7 @@ impl ProveParams {
     }
 }
 
-fn bench_parameters_env() -> anyhow::Result<String> {
+fn _bench_parameters_env() -> anyhow::Result<String> {
     std::env::var("LURK_BENCH_OUTPUT")
         .map_err(|e| anyhow!("Noise threshold env var isn't set: {e}"))
 }

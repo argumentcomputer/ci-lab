@@ -51,9 +51,7 @@ pub fn generate_plots(data: &Plots) -> Result<(), Box<dyn Error>> {
             // Draw lines between each point
             chart
                 .draw_series(LineSeries::new(
-                    line.1
-                        .iter()
-                        .map(|p| (str_to_datetime(&p.x).expect("Timestamp parse error"), p.y)),
+                    line.1.iter().map(|p| (p.x, p.y)),
                     Palette99::pick(i),
                 ))?
                 .label(line.0)
@@ -66,13 +64,11 @@ pub fn generate_plots(data: &Plots) -> Result<(), Box<dyn Error>> {
                 });
 
             // Draw dots on each point
-            chart.draw_series(line.1.iter().map(|p| {
-                Circle::new(
-                    (str_to_datetime(&p.x).expect("Timestamp parse error"), p.y),
-                    3,
-                    Palette99::pick(i).filled(),
-                )
-            }))?;
+            chart.draw_series(
+                line.1
+                    .iter()
+                    .map(|p| Circle::new((p.x, p.y), 3, Palette99::pick(i).filled())),
+            )?;
             chart
                 .configure_series_labels()
                 .background_style(WHITE)
@@ -119,8 +115,9 @@ impl Plots {
     // and adds the data to the `Plots` struct.
     pub fn add_data(&mut self, bench_data: &Vec<BenchData>) {
         for bench in bench_data {
+            let commit_date = str_to_datetime(&bench.id.bench_name).expect("Timestamp parse error");
             let point = Point {
-                x: bench.id.bench_name.to_owned(),
+                x: commit_date,
                 y: bench.result.time,
             };
 
@@ -129,7 +126,6 @@ impl Plots {
             }
             let plot = self.0.get_mut(&bench.id.group_name).unwrap();
 
-            let commit_date = str_to_datetime(&point.x).expect("Timestamp parse error");
             plot.x_axis.set_min_max(commit_date);
             plot.y_axis.set_min_max(point.y);
 
@@ -137,6 +133,12 @@ impl Plots {
                 plot.lines.insert(bench.id.params.to_owned(), vec![]);
             }
             plot.lines.get_mut(&bench.id.params).unwrap().push(point);
+        }
+        // Sort each data point in each line for each plot
+        for plot in self.0.iter_mut() {
+            for line in plot.1.lines.iter_mut() {
+                line.1.sort_by(|a, b| a.partial_cmp(b).unwrap());
+            }
         }
     }
 }
@@ -160,10 +162,10 @@ impl Plot {
 }
 
 // Historical benchmark result, showing the performance at a given Git commit
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, PartialEq, PartialOrd)]
 pub struct Point {
-    // Commit & date associated with benchmark
-    x: String,
+    // Commit timestamp associated with benchmark
+    x: DateTime<Utc>,
     // Benchmark time (avg.)
     y: f64,
 }
