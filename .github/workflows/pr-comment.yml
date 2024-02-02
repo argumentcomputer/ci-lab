@@ -1,3 +1,4 @@
+# Test PR
 # Creates a PR benchmark comment with a comparison to master
 name: Benchmark PR comment
 on:
@@ -12,5 +13,6 @@ jobs:
   bench-pr-comment:
     uses: samuelburnham/ci-workflows/.github/workflows/bench-pr-comment.yml@reusable-gpu-benches
     with:
+      default-runner: "ubuntu-latest"
       default-benches: "fibonacci,bench_test"
       default-env: "LURK_BENCH_OUTPUT=pr-comment"
