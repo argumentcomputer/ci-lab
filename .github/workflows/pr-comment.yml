@@ -11,3 +11,5 @@ concurrency:
 jobs:
   bench-pr-comment:
     uses: samuelburnham/ci-workflows/.github/workflows/bench-pr-comment.yml@reusable-gpu-benches
+    with:
+      "fibonacci","bench_test"
