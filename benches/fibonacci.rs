@@ -33,48 +33,43 @@ pub fn fib_iter(n: u64) -> u64 {
 
 #[derive(Clone, Debug)]
 struct ProveParams {
-    fib_n: u64,
+    rc: u64,
     commit_timestamp: String,
     sha: String,
 }
 
 impl ProveParams {
-    fn new(fib_n: u64) -> Self {
+    fn new(rc: u64) -> Self {
         let mut commit_timestamp = env!("VERGEN_GIT_COMMIT_TIMESTAMP").to_owned();
         // Truncate decimal seconds for readability
         commit_timestamp.replace_range(19..29, "");
         let mut sha = env!("VERGEN_GIT_SHA").to_owned();
         sha.truncate(7);
         Self {
-            fib_n,
+            rc,
             commit_timestamp,
             sha,
         }
     }
-    fn _group_name_params(&self) -> (String, String) {
-        let output_type = _bench_parameters_env().unwrap_or("stdout".into());
+    fn group_name_params(&self) -> (String, String) {
+        let output_type = bench_parameters_env().unwrap_or("stdout".into());
 
-        let mut short_sha = self.sha.to_owned();
-        short_sha.truncate(7);
         match output_type.as_ref() {
-            "pr-comment" => ("fib".into(), format!("num-{}", self.fib_n)),
-            "commit-comment" => (
-                format!("fib-ref={}", self.sha),
-                format!("num-{}", self.fib_n),
-            ),
+            "pr-comment" => ("fib".into(), format!("rc-{}", self.rc)),
+            "commit-comment" => (format!("fib-ref={}", self.sha), format!("rc-{}", self.rc)),
             "gh-pages" => (
                 format!("{}-{}", self.sha, self.commit_timestamp),
-                format!("num-{}", self.fib_n),
+                format!("rc-{}", self.rc),
             ),
             _ => (
                 "fib".into(),
-                format!("num-{}-{}-{}", self.fib_n, self.sha, self.commit_timestamp),
+                format!("rc-{}-{}-{}", self.rc, self.sha, self.commit_timestamp),
             ),
         }
     }
 }
 
-fn _bench_parameters_env() -> anyhow::Result<String> {
+fn bench_parameters_env() -> anyhow::Result<String> {
     std::env::var("LURK_BENCH_OUTPUT")
         .map_err(|e| anyhow!("Noise threshold env var isn't set: {e}"))
 }
@@ -111,11 +106,9 @@ pub fn criterion_benchmark(c: &mut Criterion) {
 
         let reduction_counts = rc_env().unwrap_or_else(|_| vec![100]);
         for rc in reduction_counts.iter() {
-            let prove_params = ProveParams::new(num);
-            let id = BenchmarkId::new(
-                format!("{}-{}", prove_params.sha, prove_params.commit_timestamp),
-                format!("rc={}", rc),
-            );
+            let prove_params = ProveParams::new(u64::try_from(*rc).unwrap());
+            let (name, params) = prove_params.group_name_params();
+            let id = BenchmarkId::new(name, params);
             group.bench_with_input(id, &num, |b, row| b.iter(|| fib_iter(black_box(*row))));
         }
         group.finish();

@@ -13,3 +13,4 @@ jobs:
     uses: samuelburnham/ci-workflows/.github/workflows/bench-pr-comment.yml@reusable-gpu-benches
     with:
       default-benches: "fibonacci,bench_test"
+      default-env: "LURK_BENCH_OUTPUT=pr-comment"
