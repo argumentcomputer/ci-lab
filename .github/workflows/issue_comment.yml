@@ -17,18 +17,9 @@ jobs:
       && contains(github.event.comment.body, '!test')
       && (github.event.comment.author_association == 'MEMBER' || github.event.comment.author_association == 'OWNER')
     steps:
-      - uses: xt0rted/pull-request-comment-branch@v2
-        id: comment-branch
-
       - uses: actions/checkout@v4
         with:
           submodules: recursive
-
-      - name: Checkout PR branch
-        run: gh pr checkout $PR_NUMBER
-        env:
-          GH_TOKEN: ${{ github.token }}
-          PR_NUMBER: ${{ github.event.issue.number }}
 
       - name: Comment on successful run
         uses: peter-evans/create-or-update-comment@v3
