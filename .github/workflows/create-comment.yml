@@ -1,0 +1,30 @@
+name: End to end integration tests
+ 
+on:
+  pull_request:
+
+jobs:
+  integration-tests-e2e:
+    name: E2E verification
+    runs-on: buildjet-16vcpu-ubuntu-2204
+    steps:
+      - name: Exit if base branch is `main`
+        if: ${{ github.base_ref == 'main' }}
+        run: |
+          echo "Cannot run end2end integration tests on PR targeting `main`"
+          exit 1
+        continue-on-error: false
+
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Comment on successful run
+        uses: peter-evans/create-or-update-comment@v3
+        with:
+          issue-number: ${{ github.event.number }}
+          body: |
+            End-to-end `!test` action succeeded! :rocket:
+
+            https://github.com/lurk-lab/solidity-verifier/actions/runs/${{ github.run_id }}
+
