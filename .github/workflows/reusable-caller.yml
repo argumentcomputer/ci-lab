@@ -12,4 +12,7 @@ concurrency:
 
 jobs:
   call-reusable-test:
-    uses: lurk-lab/ci-workflows/.github/workflows/gpu-ci.yml@gpu-ci
+    uses: lurk-lab/ci-workflows/.github/workflows/codecov.yml@main
+    with:
+      runner:
+        'buildjet-16vcpu-ubuntu-2204'
