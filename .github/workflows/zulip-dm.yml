@@ -1,0 +1,20 @@
+name: Send a test Zulip DM
+
+on:
+  workflow_dispatch:
+
+jobs:
+  send:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Prep message
+        run: echo "Star Puppy says woof" > dm.md
+      - name: Send report to Zulip
+        uses: zulip/github-actions-zulip/send-message@v1
+        with:
+          api-key: ${{ secrets.ZULIP_API_KEY }}
+          email: "starpuppyjr-bot@zulip.yatima.io"
+          organization-url: "https://zulip.lurk-lab.com"
+          to: "11"
+          type: "private"
+          content: "$(cat dm.md)"
