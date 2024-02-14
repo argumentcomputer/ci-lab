@@ -8,7 +8,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Prep message
-        run: echo "Aineko says woof" > dm.md
+        id: prep-message
+        run: echo "dm=Aineko says woof" | tee -a $GITHUB_OUTPUT
       - name: Send report to Zulip
         uses: zulip/github-actions-zulip/send-message@v1
         with:
@@ -17,4 +18,4 @@ jobs:
           organization-url: "https://zulip.lurk-lab.com"
           to: "11"
           type: "private"
-          content: "$(cat dm.md)"
+          content: "${{ steps.prep-message.outputs.dm }}"
