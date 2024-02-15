@@ -2,6 +2,10 @@ name: Send a test Zulip DM
 
 on:
   workflow_dispatch:
+    inputs:
+      message:
+        type: string
+        required: false
 
 jobs:
   send:
@@ -9,7 +13,13 @@ jobs:
     steps:
       - name: Prep message
         id: prep-message
-        run: echo "dm=Aineko says woof" | tee -a $GITHUB_OUTPUT
+        run: |
+          if [[ ${{ inputs.message }} != '' ]]; then
+            DM="${{ inputs.message }}"
+          else
+            DM="Aineko says meow"
+          fi
+          echo "dm=$DM" | tee -a $GITHUB_OUTPUT
       - name: Send report to Zulip
         uses: zulip/github-actions-zulip/send-message@v1
         with:
