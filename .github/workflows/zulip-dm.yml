@@ -17,9 +17,15 @@ jobs:
           if [[ ! -z "${{ inputs.message }}" ]]; then
             DM="${{ inputs.message }}"
           else
-            DM="Aineko says meow"
+            DM=$(printf '%s\n' "Aineko
+            says
+            meow")
+            {
+              echo 'dm<<EOF'
+              $DM
+              echo EOF
+            } >> "$GITHUB_OUTPUT"
           fi
-          echo "dm=$DM" | tee -a $GITHUB_OUTPUT
           echo "PROJECTS=$PROJECTS" | tee -a $GITHUB_OUTPUT
       - run: echo "${{ env.PROJECTS }}"
       - name: Send report to Zulip
