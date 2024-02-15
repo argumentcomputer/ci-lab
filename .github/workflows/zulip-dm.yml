@@ -14,7 +14,7 @@ jobs:
       - name: Prep message
         id: prep-message
         run: |
-          if [[ ${{ inputs.message }} != '' ]]; then
+          if [[ "${{ inputs.message }}" != '' ]]; then
             DM="${{ inputs.message }}"
           else
             DM="Aineko says meow"
