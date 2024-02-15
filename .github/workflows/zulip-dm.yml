@@ -21,7 +21,7 @@ jobs:
             `says`
             meow" > message.md
             echo "dm<<EOF" >> $GITHUB_OUTPUT
-            echo "$(cat message.md)" >> $GITHUB_OUTPUT
+            $(cat message.md) >> $GITHUB_OUTPUT
             echo "EOF" >> $GITHUB_OUTPUT
           fi
           echo "PROJECTS=$PROJECTS" | tee -a $GITHUB_OUTPUT
