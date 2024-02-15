@@ -18,7 +18,7 @@ jobs:
             DM=${{ inputs.message }}
           else
             printf '%s\n' "Aineko
-            says
+            `says`
             meow" > message.md
             echo "dm<<EOF" >> $GITHUB_OUTPUT
             echo "$(cat message.md)" >> $GITHUB_OUTPUT
