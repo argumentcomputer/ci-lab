@@ -17,9 +17,9 @@ jobs:
           if [[ ! -z "${{ inputs.message }}" ]]; then
             DM=${{ inputs.message }}
           else
-            printf '%s\n' "Aineko
+            printf '%s\n' 'Aineko
             `says`
-            meow" > message.md
+            meow' > message.md
             echo "dm<<EOF" >> $GITHUB_OUTPUT
             cat message.md >> $GITHUB_OUTPUT
             echo "EOF" >> $GITHUB_OUTPUT
