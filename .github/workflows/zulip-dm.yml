@@ -20,6 +20,8 @@ jobs:
             DM="Aineko says meow"
           fi
           echo "dm=$DM" | tee -a $GITHUB_OUTPUT
+          echo "PROJECTS=$PROJECTS" | tee -a $GITHUB_OUTPUT
+      - run: echo "${{ env.PROJECTS }}"
       - name: Send report to Zulip
         uses: zulip/github-actions-zulip/send-message@v1
         with:
