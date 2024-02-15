@@ -17,12 +17,12 @@ jobs:
           if [[ ! -z "${{ inputs.message }}" ]]; then
             DM="${{ inputs.message }}"
           else
-            DM=$(printf '%s\n' "Aineko
+            printf '%s\n' "Aineko
             says
-            meow")
+            meow" > message.md
             {
               echo 'dm<<EOF'
-              $DM
+              $(cat message.md)
               echo EOF
             } >> "$GITHUB_OUTPUT"
           fi
