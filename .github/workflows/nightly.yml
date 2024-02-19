@@ -31,12 +31,12 @@ jobs:
         continue-on-error: true
       - name: Gather status in a single variable
         if: steps.tests.outcome == 'success' && steps.gadget-tests.outcome == 'success'
+        run: echo "status=true" | tee -a $GITHUB_ENV
+      - name: Set env & debug
         run: |
-          echo "status=true" | tee -a $GITHUB_ENV
           echo "GIT_COMMIT=$(git rev-parse --short HEAD)" | tee -a $GITHUB_ENV
           echo "GIT_COMMIT_DATE=$(git log -1 --format=%cd --date=format:%Y-%m-%d)" | tee -a $GITHUB_ENV
-      - name: Debug
-        run: |
+          echo "WORKFLOW_URL=https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}" | tee -a $GITHUB_ENV
           echo ${{ steps.tests.outcome }}
           echo ${{ steps.gadget-tests.outcome  }}
           echo ${{ env.status }}
