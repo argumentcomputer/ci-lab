@@ -49,3 +49,4 @@ jobs:
           WORKFLOW_URL: ${{ env.WORKFLOW_URL }}
         with:
           filename: .github/NIGHTLY_FAILURE.md
+          update_existing: true
