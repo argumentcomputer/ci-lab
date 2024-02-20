@@ -16,7 +16,7 @@ bench +benches:
 # Run CUDA benchmarks on GPU
 gpu-bench-ci +benches:
   #!/bin/sh
-  sudo apt-get update && sudo apt-get install pkg-config libfontconfig1-dev libfontconfig
+  sudo apt-get update && sudo apt-get install pkg-config libfontconfig1-dev libfontconfig -y
   for bench in {{benches}}; do
     cargo criterion --bench $bench --message-format=json > $bench-{{commit}}.json
   done
