@@ -7,6 +7,6 @@ on:
 
 jobs:
   benchmark:
-    uses: lurk-lab/ci-workflows/.github/workflows/bench-deploy.yml@main
+    uses: lurk-lab/ci-workflows/.github/workflows/bench-deploy.yml@bench-deploy
     with:
-      env-prefix: 'Lurk'
+      env-prefix: 'LURK'
