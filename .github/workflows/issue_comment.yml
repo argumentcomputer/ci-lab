@@ -21,11 +21,50 @@ jobs:
         with:
           submodules: recursive
 
+      - name: Checkout PR branch
+        run: gh pr checkout $PR_NUMBER
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.issue.number }}
+
+      - name: Load env defaults
+        uses: cardinalby/export-env-action@v2
+        with:
+          envFile: 'rust-reference-info.env'
+      
+      # Overrides default env vars if input to `!test` comment, e.g.
+      # `!test NOVA_URL=https://github.com/lurk-lab/Nova NOVA_COMMIT=ea4f75c225cb29f523780858ec84f1ff51c229bc NOVA_TEST_NAME=solidity_compatibility_e2e_pasta`
+      - name: Set env from comment body
+        run: |
+          BODY=$(printf '${{ github.event.comment.body }}')
+          NOVA_URL=$(echo $BODY | awk -F'[ =]' '{for (i=1; i<=NF; i++) {if ($i ~ /^NOVA_URL/) {print $(i+1) }}}')
+          if [[ ! -z $NOVA_URL ]]; then
+            echo "NOVA_URL=$NOVA_URL" | tee -a $GITHUB_ENV
+          fi
+          NOVA_COMMIT=$(echo $BODY | awk -F'[ =]' '{for (i=1; i<=NF; i++) {if ($i ~ /^NOVA_COMMIT/) {print $(i+1) }}}')
+          if [[ ! -z $NOVA_COMMIT ]]; then
+            echo "NOVA_COMMIT=$NOVA_COMMIT" | tee -a $GITHUB_ENV
+          fi
+          NOVA_TEST_NAME=$(echo $BODY | awk -F'[ =]' '{for (i=1; i<=NF; i++) {if ($i ~ /^NOVA_TEST_NAME/) {print $(i+1) }}}')
+          if [[ ! -z $NOVA_TEST_NAME ]]; then
+            echo "NOVA_TEST_NAME=$NOVA_TEST_NAME" | tee -a $GITHUB_ENV
+          fi
+
       - name: Comment on successful run
         uses: peter-evans/create-or-update-comment@v3
         with:
           issue-number: ${{ github.event.issue.number }}
           body: |
             End-to-end `!test` action succeeded! :rocket:
+
+            https://github.com/lurk-lab/solidity-verifier/actions/runs/${{ github.run_id }}
+
+      - name: Comment on failing run
+        if: failure()
+        uses: peter-evans/create-or-update-comment@v3
+        with:
+          issue-number: ${{ github.event.issue.number }}
+          body: |
+            End-to-end `!test` action failed :x:
 
             https://github.com/lurk-lab/solidity-verifier/actions/runs/${{ github.run_id }}
