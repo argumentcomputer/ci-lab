@@ -1,4 +1,3 @@
-# Test PR
 # Run integration tests when a maintainer comments `!test` on a PR to feature branch
 # Fails when base branch is `main`, as it doesn't support e2e tests
 name: End to end integration tests
@@ -56,6 +55,10 @@ jobs:
           issue-number: ${{ github.event.issue.number }}
           body: |
             End-to-end `!test` action succeeded! :rocket:
+
+            NOVA_URL=${{ env.NOVA_URL }}
+            NOVA_COMMIT=${{ env.NOVA_COMMIT }}
+            NOVA_TEST_NAME=${{ env.NOVA_TEST_NAME }}
 
             https://github.com/lurk-lab/solidity-verifier/actions/runs/${{ github.run_id }}
 
