@@ -8,32 +8,14 @@ commit := `git rev-parse --short HEAD`
 # Run CUDA benchmarks on GPU
 bench +benches:
   #!/bin/sh
-  # Ensure the cargo env is passed to `just`
-  export PATH=${CARGO_HOME:-$HOME/.cargo}/bin:$PATH
   #export LURK_RC=100,600
-  if [ '{{benches}}' != '' ]; then
-    for bench in {{benches}}; do
-      cargo criterion --bench $bench --message-format=json 2>&1 > $bench-{{commit}}.json
-    done
-  else
-    echo "Invalid input, enter at least one non-empty string"
-  fi
+  for bench in {{benches}}; do
+    cargo criterion --bench $bench --message-format=json 2>&1 > $bench-{{commit}}.json
+  done
 
 # Run CUDA benchmarks on GPU
-gpu-bench +benches:
+gpu-bench-ci +benches:
   #!/bin/sh
-  # Ensure the cargo env is passed to `just`
-  export PATH=${CARGO_HOME:-$HOME/.cargo}/bin:$PATH
-  # The `compute`/`sm` number corresponds to the Nvidia GPU architecture
-  # In this case, the self-hosted machine uses the Ampere architecture, but we want this to be configurable
-  # See https://arnon.dk/matching-sm-architectures-arch-and-gencode-for-various-nvidia-cards/
-  export CUDA_ARCH=$(nvidia-smi --query-gpu=compute_cap --format=csv,noheader | sed 's/\.//g')
-  export EC_GPU_CUDA_NVCC_ARGS="--fatbin --gpu-architecture=sm_$CUDA_ARCH --generate-code=arch=compute_$CUDA_ARCH,code=sm_$CUDA_ARCH"
-  env | grep -E "LURK|EC_GPU|CUDA"
-  if [ '{{benches}}' != '' ]; then
-    for bench in {{benches}}; do
-      cargo criterion --bench $bench --message-format=json > $bench-{{commit}}.json
-    done
-  else
-    echo "Invalid input, enter at least one non-empty string"
-  fi
+  for bench in {{benches}}; do
+    cargo criterion --bench $bench --message-format=json > $bench-{{commit}}.json
+  done
