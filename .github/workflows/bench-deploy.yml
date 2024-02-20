@@ -1,9 +1,12 @@
 name: GPU benchmark and deploy on `main`
+
 on:
+  push:
+    branches: main
   workflow_dispatch:
-    inputs:
-      env-prefix: 'LURK'
 
 jobs:
   benchmark:
     uses: lurk-lab/ci-workflows/.github/workflows/bench-deploy.yml@main
+    with:
+      env-prefix: 'Lurk'
