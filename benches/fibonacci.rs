@@ -99,6 +99,8 @@ fn noise_threshold_env() -> anyhow::Result<f64> {
 }
 
 pub fn criterion_benchmark(c: &mut Criterion) {
+    #[cfg(feature = "cuda")]
+    println!("CUDA feature activated");
     let nums: Vec<u64> = vec![10, 20];
     for num in nums {
         let mut group = c.benchmark_group(format!("Fibonacci-num={}", num));

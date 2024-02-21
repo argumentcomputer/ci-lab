@@ -1,4 +1,4 @@
-# Creates a PR benchmark comment with a comparison to master
+# Creates a PR benchmark comment with a comparison to base branch
 name: Benchmark PR comment
 on:
   issue_comment:
@@ -10,7 +10,7 @@ concurrency:
 
 jobs:
   bench-pr-comment:
-    uses: samuelburnham/ci-workflows/.github/workflows/bench-pr-comment.yml@reusable-gpu-benches
+    uses: lurk-lab/ci-workflows/.github/workflows/bench-pr-comment.yml@main
     with:
-      default-benches: "fibonacci,bench_test"
+      default-benches: "bench_test"
       default-env: "LURK_BENCH_OUTPUT=pr-comment"
