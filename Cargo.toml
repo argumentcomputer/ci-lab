@@ -19,6 +19,7 @@ anyhow = "1.0"
 
 [features]
 cuda = []
+asm = []
 
 [[bench]]
 name = "fibonacci"

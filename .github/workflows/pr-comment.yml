@@ -13,4 +13,4 @@ jobs:
     uses: lurk-lab/ci-workflows/.github/workflows/bench-pr-comment.yml@main
     with:
       default-benches: "bench_test"
-      default-env: "LURK_BENCH_OUTPUT=pr-comment"
+      default-env: "LURK_BENCH_OUTPUT=pr-comment LURK_NOISE_THRESHOLD=0.05"
