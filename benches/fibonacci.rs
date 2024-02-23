@@ -51,18 +51,21 @@ impl ProveParams {
             sha,
         }
     }
-    fn group_name_params(&self) -> (String, String) {
+    fn bench_id(&self, name: &str) -> BenchmarkId {
         let output_type = bench_parameters_env().unwrap_or("stdout".into());
 
         match output_type.as_ref() {
-            "pr-comment" => ("fib".into(), format!("rc-{}", self.rc)),
-            "commit-comment" => (format!("fib-ref={}", self.sha), format!("rc-{}", self.rc)),
-            "gh-pages" => (
-                format!("{}-{}", self.sha, self.commit_timestamp),
-                format!("rc-{}", self.rc),
-            ),
-            _ => (
-                "fib".into(),
+            "pr-comment" => BenchmarkId::new(name, format!("rc-{}", self.rc)),
+            "commit-comment" => {
+                BenchmarkId::new(format!("ref={}", self.sha), format!("rc-{}", self.rc))
+            }
+            //"gh-pages" => (
+            //format!("{}-{}", self.sha, self.commit_timestamp),
+            //format!("rc-{}", self.rc),
+            //),
+            // Includes gh-pages
+            _ => BenchmarkId::new(
+                name,
                 format!("rc-{}-{}-{}", self.rc, self.sha, self.commit_timestamp),
             ),
         }
@@ -109,8 +112,7 @@ pub fn criterion_benchmark(c: &mut Criterion) {
         let reduction_counts = rc_env().unwrap_or_else(|_| vec![100]);
         for rc in reduction_counts.iter() {
             let prove_params = ProveParams::new(u64::try_from(*rc).unwrap());
-            let (name, params) = prove_params.group_name_params();
-            let id = BenchmarkId::new(name, params);
+            let id = prove_params.bench_id("fib");
             group.bench_with_input(id, &num, |b, row| b.iter(|| fib_iter(black_box(*row))));
         }
         group.finish();
