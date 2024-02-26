@@ -1,10 +1,7 @@
 name: Test calling reusable workflow
 
 on:
-  pull_request:
-    types: [opened, synchronize, reopened, ready_for_review]
-    branches: [main]
-  merge_group:
+  workflow_dispatch:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
@@ -12,4 +9,6 @@ concurrency:
 
 jobs:
   call-reusable-test:
-    uses: lurk-lab/ci-workflows/.github/workflows/gpu-ci.yml@gpu-ci
+    uses: lurk-lab/ci-workflows/.github/workflows/lints.yml@install-deps
+    with:
+      packages: 'cowsay fortune'
