@@ -1,4 +1,4 @@
-name: 'Test local composite action'
+name: 'Test composite action'
 
 on:
   workflow_dispatch:
@@ -9,12 +9,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          repository: lurk-lab/ci-lab
-      - uses: ./.github/actions/composite-test
-        id: rng
+          repository: lurk-lab/ci-workflows
+          ref: install-deps
+      - uses: ./.github/actions/install-deps
         with:
-          who-to-greet: 'Composite Action'
-      - run: |
-          echo "Random number: ${{ steps.id.outputs.random-number }}"
-          echo "${{ env.TEST_ENV_VAR }}"
-          env | grep -E "TEST"
+          packages: 'cowsay fortune'
+      - run: fortune | cowsay
