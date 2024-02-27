@@ -66,7 +66,7 @@ impl ProveParams {
             // Includes gh-pages
             _ => BenchmarkId::new(
                 name,
-                format!("rc-{}-{}-{}", self.rc, self.sha, self.commit_timestamp),
+                format!("{}-{}-rc-{}", self.sha, self.commit_timestamp, self.rc),
             ),
         }
     }
