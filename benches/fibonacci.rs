@@ -59,10 +59,6 @@ impl ProveParams {
             "commit-comment" => {
                 BenchmarkId::new(format!("ref={}", self.sha), format!("rc-{}", self.rc))
             }
-            //"gh-pages" => (
-            //format!("{}-{}", self.sha, self.commit_timestamp),
-            //format!("rc-{}", self.rc),
-            //),
             // Includes gh-pages
             _ => BenchmarkId::new(
                 name,
