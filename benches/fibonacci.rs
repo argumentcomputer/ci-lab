@@ -62,7 +62,7 @@ impl ProveParams {
             // Includes gh-pages
             _ => BenchmarkId::new(
                 name,
-                format!("{}-{}-rc-{}", self.sha, self.commit_timestamp, self.rc),
+                format!("{}-{}-rc={}", self.sha, self.commit_timestamp, self.rc),
             ),
         }
     }
@@ -108,7 +108,7 @@ pub fn criterion_benchmark(c: &mut Criterion) {
         let reduction_counts = rc_env().unwrap_or_else(|_| vec![100]);
         for rc in reduction_counts.iter() {
             let prove_params = ProveParams::new(u64::try_from(*rc).unwrap());
-            let id = prove_params.bench_id("fib");
+            let id = prove_params.bench_id("Prove");
             group.bench_with_input(id, &num, |b, row| b.iter(|| fib_iter(black_box(*row))));
         }
         group.finish();
