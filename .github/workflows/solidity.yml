@@ -57,7 +57,7 @@ jobs:
           WORKFLOW_URL=https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
           echo "WORKFLOW_URL=$WORKFLOW_URL" | tee -a $GITHUB_ENV
           echo "WORKFLOW_FILE=$WORKFLOW_URL/workflow" | tee -a $GITHUB_ENV
-          echo "COMMIT=${{ steps.pr.outputs.}}" | tee -a $GITHUB_ENV
+          echo "COMMIT=${{ steps.commit.outputs.sha }}" | tee -a $GITHUB_ENV
           echo "PR_URL=${{ steps.pr.outputs.prUrl }}" | tee -a $GITHUB_ENV
       - name: Comment on failing run
         if: steps.solidity-test.outcome != 'success'
