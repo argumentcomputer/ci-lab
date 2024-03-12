@@ -1,0 +1,84 @@
+# TODO: Reusify and combine with the `check-lurk-compiles` action and/or make a reusable open-issue action
+# This workflow runs compatibility tests on a PR
+# On a `pull_request` failure, it writes a PR comment to ensure the author/reviewer are notified
+# On a `merge_group` failure, it opens an issue in the downstream repo that compatibility has been broken
+# It is not intended to be a required status check, only to noisily surface breaking changes
+name: Test Solidity Compatibility
+ 
+on:
+  merge_group:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+    branches:
+      - main
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
+
+jobs:
+  solidity-compat:
+    runs-on: buildjet-16vcpu-ubuntu-2204
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          repository: lurk-lab/ci-workflows
+      - uses: ./.github/actions/ci-env
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: taiki-e/install-action@nextest
+      - uses: Swatinem/rust-cache@v2
+      - run: cargo nextest run -E 'test(test_solidity_compatibility_ipa)' --release --run-ignored all
+        id: solidity-test
+        continue-on-error: true
+      # Gets the commit hash so we can retrieve detailed PR info
+      - name: Get commit hash
+        id: commit
+        if: steps.solidity-test.outcome != 'success'
+        run: |
+          if [[ -s ${{ github.event.pull_request }} ]]; then
+            SHA=${{ github.event.pull_request.head_sha }}
+          else
+            SHA=${{ github.event.merge_group.head_sha }}
+          echo "sha=$SHA" | tee -a $GITHUB_OUTPUT
+      # Gets the PR info regardless of whether the workflow is triggered by `pull_request` or `merge_group`
+      - uses: 8BitJonny/gh-get-current-pr@3.0.0
+        if: steps.solidity-test.outcome != 'success'
+        id: pr
+        with:
+          sha: ${{ steps.commit.outputs.sha }}
+      # Prepares env vars for use in a PR comment or issue in `solidity-verifier`
+      - name: Set env vars
+        if: steps.solidity-test.outcome != 'success'
+        run: |
+          WORKFLOW_URL=https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          echo "WORKFLOW_URL=$WORKFLOW_URL" | tee -a $GITHUB_ENV
+          echo "WORKFLOW_FILE=$WORKFLOW_URL/workflow" | tee -a $GITHUB_ENV
+          echo "COMMIT=${{ steps.pr.outputs.}}" | tee -a $GITHUB_ENV
+          echo "PR_URL=${{ steps.pr.outputs.prUrl }}" | tee -a $GITHUB_ENV
+      - name: Comment on failing run
+        if: steps.solidity-test.outcome != 'success'
+        uses: peter-evans/create-or-update-comment@v4
+        with:
+          issue-number: ${{ github.event.issue.number }}
+          body: |
+            `solidity-verifier` compatibility test failed :x:
+
+            ${{ env.WORKFLOW_URL }}
+      #- uses: actions/checkout@v4
+        #if: steps.solidity-test.outcome != 'success' && (github.event_name != 'pull_request' || github.event.action == 'enqueued')         
+        #with:
+          #repository: lurk-lab/solidity-verifier
+      - uses: JasonEtco/create-an-issue@v2
+        if: steps.solidity-test.outcome != 'success' && (github.event_name != 'pull_request' || github.event.action == 'enqueued')         
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          WORKFLOW_URL: ${{ env.WORKFLOW_URL }}
+          WORKFLOW_FILE: ${{ env.WORKFLOW_FILE }}
+          COMMIT: ${{ env.COMMIT }}
+          PR_URL: ${{ env.PR_URL }}
+        with:
+          update_existing: true
+          filename: .github/templates/SOLIDITY_COMPAT_ISSUE.md
