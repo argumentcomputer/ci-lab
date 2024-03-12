@@ -73,9 +73,6 @@ jobs:
         with:
           repository: lurk-lab/ci-lab
           path: ${{ github.workspace }}/template
-          sparse-checkout: |
-            .github/templates/SOLIDITY_COMPAT_ISSUE.md
-          sparse-checkout-cone-mode: false
       - run: |
           find $PWD/template/.github/* -type f
         #if: steps.solidity-test.outcome != 'success' && (github.event_name != 'pull_request' || github.event.action == 'enqueued')
@@ -89,7 +86,7 @@ jobs:
           PR_URL: ${{ env.PR_URL }}
         with:
           update_existing: true
-          filename: ${{ github.workspace }}/template/.github/templates/SOLIDITY_COMPAT_ISSUE.md
+          filename: template/.github/templates/SOLIDITY_COMPAT_ISSUE.md
       # Prevent merge of required check (test)
       - if: steps.solidity-test.outcome != 'success' && (github.event_name != 'pull_request' || github.event.action == 'enqueued')
         run: exit 1
