@@ -1,3 +1,4 @@
+# Test
 # TODO: Reusify and combine with the `check-lurk-compiles` action and/or make a reusable open-issue action
 # This workflow runs compatibility tests on a PR
 # On a `pull_request` failure, it writes a PR comment to ensure the author/reviewer are notified
