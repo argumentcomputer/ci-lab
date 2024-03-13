@@ -40,7 +40,7 @@ jobs:
         continue-on-error: true
       # Prepares env vars for use in a PR comment or issue in `solidity-verifier`
       - name: Set env vars
-        #if: steps.solidity-test.outcome != 'success'
+        if: steps.solidity-test.outcome != 'success'
         run: |
           if [[ "${{ github.event_name }}" == "pull_request" ]]; then
             COMMIT=$(echo ${{ github.event.pull_request.head.sha }} | cut -c -7)
