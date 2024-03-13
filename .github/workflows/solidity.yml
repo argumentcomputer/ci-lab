@@ -46,7 +46,7 @@ jobs:
             COMMIT=$(echo ${{ github.event.pull_request.head.sha }} | cut -c -7)
             PR_NUMBER=${{ github.event.pull_request.number }}
           else
-            COMMIT=$(${{ github.event.merge_group.head_sha }} | cut -c -7)
+            COMMIT=$(echo ${{ github.event.merge_group.head_sha }} | cut -c -7)
             PR_NUMBER=$(echo ${{ github.event.merge_group.head_ref }} | sed -e 's/.*pr-\(.*\)-.*/\1/')
           fi
           GITHUB_URL=https://github.com/${{ github.repository }}
