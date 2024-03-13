@@ -1,10 +1,8 @@
----
-title: "Compatibility broken with Arecibo"
-labels: debt, automated-issues
----
+Compatibility with the [Arecibo](https://github.com/lurk-lab/arecibo) dependency has been broken by commit [`__COMMIT__`](__COMMIT_URL__) from __PR_URL__.
 
-Compatibility with the [Arecibo](https://github.com/lurk-lab/arecibo) Rust library has been broken by commit {{env.COMMIT}} from {{env.PR_URL}}
+Check the [solidity compatibility workflow run](__WORKFLOW_URL__) for details.
 
-Check the [solidity compatibility]({{env.WORKFLOW_URL}}) workflow for details.
+This issue was raised by the workflow at __WORKFLOW_FILE__.
 
-This issue was raised by the workflow at {{env.WORKFLOW_FILE}}.
+> [!NOTE]
+> This is a test
