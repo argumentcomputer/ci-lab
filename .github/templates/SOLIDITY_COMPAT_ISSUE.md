@@ -1,13 +1,8 @@
----
-title: ":rotating_light: Arecibo compatibility is broken"
-labels: debt, automated-issues
----
+Compatibility with the [Arecibo](https://github.com/lurk-lab/arecibo) dependency has been broken by commit [`__COMMIT__`](__COMMIT_URL__) from __PR_URL__.
 
-Compatibility with the [Arecibo](https://github.com/lurk-lab/arecibo) dependency has been broken by commit {{env.COMMIT}} from {{env.PR_URL}}
+Check the [solidity compatibility workflow run](__WORKFLOW_URL__) for details.
 
-Check the [solidity compatibility workflow run]({{env.WORKFLOW_URL}}) for details.
+This issue was raised by the workflow at __WORKFLOW_FILE__.
 
-This issue was raised by the workflow at {{env.WORKFLOW_FILE}}.
-
-> ![NOTE]
+> [!NOTE]
 > This is a test
