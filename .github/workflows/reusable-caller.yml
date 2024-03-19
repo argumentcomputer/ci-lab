@@ -9,6 +9,6 @@ concurrency:
 
 jobs:
   call-reusable-test:
-    uses: lurk-lab/ci-workflows/.github/workflows/lints.yml@install-deps
+    uses: lurk-lab/ci-workflows/.github/workflows/lints.yml@lints-nightly
     with:
-      packages: 'cowsay fortune'
+      nightly-fmt: true
