@@ -11,7 +11,7 @@ concurrency:
 jobs:
   bench-pr-comment:
     name: Comparative PR benchmark comment
-    uses: lurk-lab/ci-workflows/.github/workflows/bench-pr-comment.yml@bench-pr-comment
+    uses: lurk-lab/ci-workflows/.github/workflows/bench-pr-comment.yml@fix-bench-pr-comment
     with:
       default-benches: "bench_test"
       default-env: "LURK_BENCH_OUTPUT=pr-comment LURK_RC=100,600"
