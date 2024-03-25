@@ -1,0 +1,9 @@
+# Udeps sanity check
+name: Unused deps
+
+on:
+  pull_request:
+
+jobs:
+  unused-dependencies:
+    uses: lurk-lab/ci-workflows/.github/workflows/unused-deps.yml@fix-udeps
