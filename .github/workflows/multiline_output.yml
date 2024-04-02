@@ -1,0 +1,44 @@
+name: Tests
+
+on:
+  pull_request:
+    branches:
+      - "**"
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
+
+jobs:
+  integration-tests-examples:
+    name: Build integration tests and examples
+    runs-on: buildjet-16vcpu-ubuntu-2204
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          repository: lurk-lab/ci-workflows
+      - uses: ./.github/actions/ci-env
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - name: Multiline output
+        id: multiline
+        run: |
+          printf "Multiline\noutput" >> Cargo.toml
+          stdout=$(git diff)
+          echo "stdout<<EOF" | tee -a $GITHUB_OUTPUT
+          echo "$stdout" | tee -a $GITHUB_OUTPUT
+          echo "EOF" | tee -a $GITHUB_OUTPUT
+      - name: Comment on PR
+        uses: peter-evans/create-or-update-comment@v4
+        with:
+          issue-number: ${{ github.event.number }}
+          body: |
+            <details>
+            <summary>Git diff output</summary>
+
+            ```
+            ${{ steps.multiline.outputs.stdout }}
+            ```
+
+            </details>
