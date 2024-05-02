@@ -24,3 +24,9 @@ jobs:
             if ("$PRIVATE_KEY" == "") {
               core.setFailed('Failed to access PRIVATE_KEY secret')
             }
+
+  get-job-url:
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          echo ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}/job/${{ github.job }}
