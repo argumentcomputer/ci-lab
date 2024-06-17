@@ -12,7 +12,7 @@ jobs:
       - name: Write to file
         id: set-output
         run: |
-          echo 'EOF' > tmp.txt
+          echo <<'EOF' > tmp.txt
           Multi line
           file
           test
