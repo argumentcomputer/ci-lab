@@ -12,7 +12,7 @@ jobs:
       - name: Write to file
         id: set-output
         run: |
-          echo <<'EOF' > tmp.txt
+          cat <<'EOF' > tmp.txt
           Multi line
           file
           test
@@ -21,7 +21,7 @@ jobs:
           multiline=$(cat tmp.txt)
 
           echo "content<<EOF" >> $GITHUB_OUTPUT  
-          echo -e "$multiline" >> $GITHUB_OUTPUT           
+          echo -e "$multiline" | tee -a $GITHUB_OUTPUT           
           echo "EOF" >> $GITHUB_OUTPUT
       - name: Read output
         run: |
