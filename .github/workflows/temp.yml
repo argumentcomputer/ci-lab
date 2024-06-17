@@ -1,0 +1,27 @@
+name: Multiline output
+
+on:
+  push:
+    branches: main
+
+jobs:
+  output:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Write to file
+        id: set-output
+        run: |
+          echo 'EOF' > tmp.txt
+          Multi line
+          file
+          test
+          EOF
+          multiline=$(cat tmp.txt)
+          echo "content<<EOF" >> $GITHUB_OUTPUT  
+          echo "$multiline" | tee -a $GITHUB_OUTPUT           
+          echo "EOF" >> $GITHUB_OUTPUT
+      - name: Read output
+        run: |
+          echo "File content:\n${{ steps.set-output.outputs.content }}"
+
