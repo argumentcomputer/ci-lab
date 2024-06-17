@@ -21,7 +21,7 @@ jobs:
           multiline=$(cat tmp.txt)
 
           echo "content<<EOF" >> $GITHUB_OUTPUT  
-          echo "$multiline" >> $GITHUB_OUTPUT           
+          echo -e "$multiline" >> $GITHUB_OUTPUT           
           echo "EOF" >> $GITHUB_OUTPUT
       - name: Read output
         run: |
