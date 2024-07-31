@@ -1,26 +1,32 @@
-name: Test access to secrets
+name: Test matrix includes
 
-on: 
+on:
+  push:
+    branches:
+      - "matrix-includes"
   pull_request:
     types: [opened, synchronize, reopened, ready_for_review]
     branches: [main]
   merge_group:
 
-env:
-  PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
-
-concurrency:
-  group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
-  cancel-in-progress: true
-
 jobs:
-  assert-private-key:
-    if: github.event_name != 'pull_request' || github.event.action == 'enqueued'
+  check-downstream-compiles:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        downstream: [zk-light-clients, loam]
+        include:
+          - light-client: aptos
+            downstream: zk-light-clients
+          - light-client: ethereum
+            downstream: zk-light-clients
     steps:
-      - uses: actions/github-script@v6
-        with:
-          script: |
-            if ("$PRIVATE_KEY" == "") {
-              core.setFailed('Failed to access PRIVATE_KEY secret')
-            }
+      - uses: actions/checkout@v4
+      - if: ${{ matrix.downstream == "zk-light-clients" }}
+        run: |
+          echo "${{ matrix.light-client }}"
+      - if: ${{ matrix.downstream != "zk-light-clients" }}
+        run: |
+          echo "${{ matrix.downstream }}"
+
+
