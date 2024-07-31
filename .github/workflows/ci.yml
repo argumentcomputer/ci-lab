@@ -22,10 +22,10 @@ jobs:
             downstream: zk-light-clients
     steps:
       - uses: actions/checkout@v4
-      - if: ${{ matrix.downstream == "zk-light-clients" }}
+      - if: matrix.downstream == "zk-light-clients"
         run: |
           echo "${{ matrix.light-client }}"
-      - if: ${{ matrix.downstream != "zk-light-clients" }}
+      - if: matrix.downstream != "zk-light-clients"
         run: |
           echo "${{ matrix.downstream }}"
 
