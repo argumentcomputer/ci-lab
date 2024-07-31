@@ -14,19 +14,19 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        downstream: [zk-light-clients, loam]
+        downstream-path: [aptos, ethereum, loam]
         include:
-          - light-client: aptos
-            downstream: zk-light-clients
-          - light-client: ethereum
-            downstream: zk-light-clients
+          - repo: zk-light-clients
+            downstream-path: aptos
+          - repo: zk-light-clients
+            downstream-path: ethereum
     steps:
       - uses: actions/checkout@v4
-      - if: matrix.downstream == 'zk-light-clients'
+      - if: matrix.downstream-path == 'aptos' || matrix.downstream-path == 'ethereum'
         run: |
-          echo "${{ matrix.light-client }}"
-      - if: matrix.downstream != 'zk-light-clients'
+          echo "${{ matrix.repo }}"
+      - if: matrix.downstream-path == 'loam'
         run: |
-          echo "${{ matrix.downstream }}"
+          echo "${{ matrix.downstream-path }}"
 
 
