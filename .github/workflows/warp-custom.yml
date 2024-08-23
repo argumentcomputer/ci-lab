@@ -12,8 +12,14 @@ concurrency:
 
 jobs:
   run:
-    runs-on: warp-custom-r7iz-metal-16xl
+    runs-on: warp-custom-t3-micro
     steps:
       - uses: actions/checkout@v4
-      - run: |
-          echo "I'm a custom Warpbuild runner"
+      - name: Set RUSTFLAGS twice within the same step
+        run: |
+          echo "RUSTFLAGS='-C opt-level=3'" | tee -a $GITHUB_ENV
+          echo "RUSTFLAGS='-C target-cpu=native'" | tee -a $GITHUB_ENV
+      
+      - name: Check RUSTFLAGS in the next step
+        run: |
+          echo "RUSTFLAGS in the next step: ${{ env.RUSTFLAGS }}"
