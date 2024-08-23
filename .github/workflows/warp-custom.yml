@@ -1,0 +1,19 @@
+name: Custom Warp test
+
+on: 
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+    branches: [main]
+  merge_group:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
+
+jobs:
+  run:
+    runs-on: warp-custom-t3-micro
+    steps:
+      - uses: actions/checkout@v4
+      - run: |
+          echo "I'm a custom Warpbuild runner"
