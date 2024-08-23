@@ -1,0 +1,25 @@
+name: Custom Warp test
+
+on: 
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+    branches: [main]
+  merge_group:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
+
+jobs:
+  run:
+    runs-on: warp-custom-t3-micro
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set RUSTFLAGS twice within the same step
+        run: |
+          echo "RUSTFLAGS='-C opt-level=3'" | tee -a $GITHUB_ENV
+          echo "RUSTFLAGS='-C target-cpu=native'" | tee -a $GITHUB_ENV
+      
+      - name: Check RUSTFLAGS in the next step
+        run: |
+          echo "RUSTFLAGS in the next step: ${{ env.RUSTFLAGS }}"
