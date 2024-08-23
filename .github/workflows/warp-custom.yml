@@ -12,7 +12,7 @@ concurrency:
 
 jobs:
   run:
-    runs-on: warp-custom-t3-micro
+    runs-on: warp-custom-r7iz-metal-16xl
     steps:
       - uses: actions/checkout@v4
       - run: |
