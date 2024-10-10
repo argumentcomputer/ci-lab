@@ -17,11 +17,13 @@ jobs:
       - name: Convert input to JSON array
         id: set-matrix
         run: |
-          JSON=$(echo "${{ inputs.light-clients }}" | jq -Rc 'split(",")')
+          light_clients="${{ github.event.inputs.light-clients }}"
+          JSON=$(echo "${light-clients}" | jq -Rc 'split(",")')
           echo "light-clients=$JSON" | tee -a "$GITHUB_OUTPUT"
 
   benchmark:
     name: Light client benchmark
+    needs: set-matrix
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
