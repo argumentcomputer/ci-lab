@@ -9,15 +9,25 @@ on:
         required: true
 
 jobs:
+  set-matrix:
+    runs-on: ubuntu-latest
+    outputs:
+      light-clients: ${{ steps.set-matrix.outputs.light-clients }}
+    steps:
+      - name: Convert input to JSON array
+        id: set-matrix
+        run: |
+          json=$(echo "${{ inputs.light-client }}" | jq -R 'split(",")')
+          echo "light-clients=$json" >> $GITHUB_OUTPUT
+
   benchmark:
     name: Light client benchmark
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        #package: ${{ fromjson(inputs.light-clients) }}
-        package: ${{ inputs.light-clients }}
+        light-client: ${{ fromJson(needs.set-matrix.outputs.light-clients) }}
     steps:
       - name: Echo input
         run: |
-          echo "Package: ${{ matrix.package }}"
+          echo "Package: ${{ matrix.light-client }}"
