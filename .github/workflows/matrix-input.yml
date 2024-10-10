@@ -1,0 +1,22 @@
+name: Light client benchmark
+
+on:
+  workflow_dispatch:
+    inputs:
+      light-clients:
+        description: 'Light clients to benchmark, e.g. `aptos,ethereum`'
+        type: string
+        required: true
+
+jobs:
+  benchmark:
+    name: Light client benchmark
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        fail-fast: false
+        package: ${{ fromJSON(${{ inputs.light-clients }}) }}
+    steps:
+      name: Echo input
+      run: |
+        echo "Package: ${{ matrix.package }}"
