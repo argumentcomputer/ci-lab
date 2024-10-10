@@ -15,7 +15,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        package: ${{ fromJSON(${{ inputs.light-clients }}) }}
+        package: ${{ fromJSON(inputs.light-clients) }}
     steps:
       - name: Echo input
         run: |
