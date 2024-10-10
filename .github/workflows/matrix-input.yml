@@ -17,6 +17,6 @@ jobs:
         fail-fast: false
         package: ${{ fromJSON(${{ inputs.light-clients }}) }}
     steps:
-      name: Echo input
-      run: |
-        echo "Package: ${{ matrix.package }}"
+      - name: Echo input
+        run: |
+          echo "Package: ${{ matrix.package }}"
