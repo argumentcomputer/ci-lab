@@ -17,7 +17,7 @@ jobs:
       - name: Convert input to JSON array
         id: set-matrix
         run: |
-          json=$(echo "${{ inputs.light-client }}" | jq -R 'split(",")')
+          json=$(echo "${{ inputs.light-clients }}" | jq -R 'split(",")')
           echo "light-clients=$json" >> $GITHUB_OUTPUT
 
   benchmark:
