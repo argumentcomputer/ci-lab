@@ -49,7 +49,7 @@ jobs:
             RESULT=${job_results[$job]}
             if [[ "$RESULT" == "failure" ]]; then
               echo "fail"
-              #((failed_count++))
+              failed_count=$((failed_count + 1))
             fi
             echo "$job result: $RESULT"
           done
