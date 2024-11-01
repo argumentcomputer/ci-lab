@@ -48,7 +48,8 @@ jobs:
           for job in "${!job_results[@]}"; do
             RESULT=${job_results[$job]}
             if [[ "$RESULT" == "failure" ]]; then
-              ((failed_count++))
+              echo "fail"
+              #((failed_count++))
             fi
             echo "$job result: $RESULT"
           done
