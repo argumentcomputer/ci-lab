@@ -28,7 +28,7 @@ jobs:
   # Test job that runs for each changed package
   test:
     needs: changes
-    runs-on: ubuntu
+    runs-on: ubuntu-latest
     if: ${{ needs.changes.outputs.packages != '[]' && needs.changes.outputs.packages != '' }}
     strategy:
       fail-fast: false
