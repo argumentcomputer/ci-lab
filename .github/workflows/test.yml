@@ -5,7 +5,16 @@ on:
   pull_request:
 
 jobs:
-  test-ref:
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      jobs: ${{ steps.set-jobs.outputs.jobs }}
+    steps:
+      - id: set-jobs
+        run: |
+          echo 'jobs=["test-ref-merge","test-ref-matrix"]' >> "$GITHUB_OUTPUT"
+
+  test-ref-merge:
     runs-on: ubuntu-latest
     if: github.event_name == 'merge_group'
     steps:
@@ -18,7 +27,7 @@ jobs:
         with:
           ref: ${{ github.event.merge_group.base_ref }}
 
-  test-ref-b:
+  test-ref-pr:
     runs-on: ubuntu-latest
     if: github.event_name == 'pull_request'
     steps:
@@ -29,17 +38,20 @@ jobs:
 
   check-job-results:
     if: always()
-    needs: [test-ref, test-ref-b]
+    needs: fromJSON(jobs.changes.outputs.jobs)
     runs-on: ubuntu-latest
     steps:
       - name: Check job results
         id: check-results
         run: |
-          # Create an associative array of job statuses
-          declare -A job_results=(
-            ["test-ref"]="${{ needs.test-ref.result }}"
-            ["test-ref-b"]="${{ needs.test-ref-b.result }}"
-          )
+          # Convert JSON array to Bash array
+          mapfile -t job_names < <(echo '${{ fromJson(jobs.changes.outputs.jobs) }}')
+
+          # Create associative array of job results
+          declare -A job_results
+          for job in "${job_names[@]}"; do
+            job_results["$job"]=$(eval echo "\${{ needs.${job}.result }}")
+          done
 
           # Iterate through jobs and get their results
           failed_count=0
