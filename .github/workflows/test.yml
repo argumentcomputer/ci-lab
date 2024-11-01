@@ -5,61 +5,93 @@ on:
   pull_request:
 
 jobs:
-  test-ref:
+  changes:
     runs-on: ubuntu-latest
-    if: github.event_name == 'merge_group'
+    outputs:
+      packages: ${{ steps.get-packages.outputs.packages }}
     steps:
       - uses: actions/checkout@v4
-      - name: Print branch names
-        run: |
-            echo "Head ref: ${{ github.event.merge_group.head_ref }}"
-            echo "Base ref: ${{ github.event.merge_group.base_ref }}"
-      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: filter
         with:
-          ref: ${{ github.event.merge_group.base_ref }}
-
-  test-ref-b:
-    runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request'
-    steps:
-      - uses: actions/checkout@v4
-      - name: Print branch name
+          filters: |
+            aptos:
+              - 'aptos/**'
+            ethereum:
+              - 'ethereum/**'
+      - name: Get list of changed packages
+        id: get-packages
         run: |
-            echo "Base ref: ${{ github.base_ref }}"
+          PACKAGES=$(echo '${{ steps.filter.outputs.changes }}' | jq -c '.')
+          echo "packages=$PACKAGES" | tee -a "$GITHUB_OUTPUT"
+
+  # Test job that runs for each changed package
+  test:
+    needs: changes
+    runs-on: ubuntu-latest
+    if: ${{ needs.changes.outputs.packages != '[]' && needs.changes.outputs.packages != '' }}
+    strategy:
+      fail-fast: false
+      matrix:
+        package: ${{ fromJSON(needs.changes.outputs.packages) }}
+    steps:
+      - name: Run tests for ${{ matrix.package }}
+        run: |
+          # Run your tests here
+          echo "Testing ${{ matrix.package }}"
 
   check-job-results:
     if: always()
-    needs: [test-ref, test-ref-b]
+    needs: [changes, test]
     runs-on: ubuntu-latest
     steps:
-      - name: Check job results
-        id: check-results
+      - name: Check
         run: |
-          # Create an associative array of job statuses
-          declare -A job_results=(
-            ["test-ref"]="${{ needs.test-ref.result }}"
-            ["test-ref-b"]="${{ needs.test-ref-b.result }}"
-          )
-
-          # Iterate through jobs and get their results
-          failed_count=0
-          for job in "${!job_results[@]}"; do
-            RESULT=${job_results[$job]}
-            if [[ "$RESULT" == "failure" ]]; then
-              failed_count=$((failed_count + 1))
-            fi
-            echo "$job result: $RESULT"
-          done
-
-          if [ "$failed_count" -gt 0 ]; then
-            echo "Some jobs failed"
-            echo "result=failure" | tee -a $GITHUB_OUTPUT
+          if [[ "${{ needs.changes.outputs.packages }}" == "[]" || "${{ needs.changes.outputs.packages }}" == "" ]]; then
+            echo "No test jobs were run because no paths were changed."
           else
-            echo "All jobs succeeded or were skipped"
-            echo "result=success" | tee -a $GITHUB_OUTPUT
+            echo "Test jobs were run. Checking results..."
+            # Check the result of the test jobs
+            if [[ "${{ needs.test.result }}" == "failure" ]]; then
+              echo "One or more test jobs failed"
+              exit 1
+            else
+              echo "All test jobs succeeded"
+              exit 0
+            fi
           fi
-      - name: Error on job failure
-        run: |
-          if [[ "${{ steps.check-results.outputs.result }}" == "failure" ]]; then
-            exit 1
-          fi
+
+#      - name: Check job results
+#        id: check-results
+#        run: |
+#          # Convert JSON array to Bash array
+#          mapfile -t job_names < <(echo '${{ fromJson(needs.changes.outputs.jobs) }}')
+#
+#          # Create associative array of job results
+#          declare -A job_results
+#          for job in "${job_names[@]}"; do
+#            job_results["$job"]=$(eval echo "\${{ needs.changes.${job}.result }}")
+#          done
+#
+#          # Iterate through jobs and get their results
+#          failed_count=0
+#          for job in "${!job_results[@]}"; do
+#            RESULT=${job_results[$job]}
+#            if [[ "$RESULT" == "failure" ]]; then
+#              failed_count=$((failed_count + 1))
+#            fi
+#            echo "$job result: $RESULT"
+#          done
+#
+#          if [ "$failed_count" -gt 0 ]; then
+#            echo "Some jobs failed"
+#            echo "result=failure" | tee -a $GITHUB_OUTPUT
+#          else
+#            echo "All jobs succeeded or were skipped"
+#            echo "result=success" | tee -a $GITHUB_OUTPUT
+#          fi
+#      - name: Error on job failure
+#        run: |
+#          if [[ "${{ steps.check-results.outputs.result }}" == "failure" ]]; then
+#            exit 1
+#          fi
