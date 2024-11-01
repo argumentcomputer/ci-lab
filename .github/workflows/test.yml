@@ -14,6 +14,7 @@ jobs:
         run: |
             echo "Head ref: ${{ github.event.merge_group.head_ref }}"
             echo "Base ref: ${{ github.event.merge_group.base_ref }}"
+            exit 1
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.event.merge_group.base_ref }}
@@ -26,10 +27,8 @@ jobs:
       - name: Print branch name
         run: |
             echo "Base ref: ${{ github.base_ref }}"
-            exit 1
 
-  # Wait and verify job
-  wait-and-verify:
+  check-job-results:
     if: always()
     needs: [test-ref, test-ref-b]
     runs-on: ubuntu-latest
@@ -48,7 +47,6 @@ jobs:
           for job in "${!job_results[@]}"; do
             RESULT=${job_results[$job]}
             if [[ "$RESULT" == "failure" ]]; then
-              echo "fail"
               failed_count=$((failed_count + 1))
             fi
             echo "$job result: $RESULT"
