@@ -12,7 +12,7 @@ jobs:
     steps:
       - id: set-jobs
         run: |
-          echo 'jobs=["test-ref-merge","test-ref-matrix"]' >> "$GITHUB_OUTPUT"
+          echo 'jobs=["changes","test-ref-merge","test-ref-matrix"]' >> "$GITHUB_OUTPUT"
 
   test-ref-merge:
     runs-on: ubuntu-latest
@@ -45,7 +45,7 @@ jobs:
         id: check-results
         run: |
           # Convert JSON array to Bash array
-          mapfile -t job_names < <(echo '${{ fromJson(jobs.changes.outputs.jobs) }}')
+          mapfile -t job_names < <(echo '${{ fromJson(needs.changes.outputs.jobs) }}')
 
           # Create associative array of job results
           declare -A job_results
