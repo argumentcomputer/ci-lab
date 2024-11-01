@@ -8,39 +8,59 @@ jobs:
   changes:
     runs-on: ubuntu-latest
     outputs:
-      jobs: ${{ steps.set-jobs.outputs.jobs }}
-    steps:
-      - id: set-jobs
-        run: |
-          echo 'jobs=["changes","test-ref-merge","test-ref-matrix"]' >> "$GITHUB_OUTPUT"
-
-  test-ref-merge:
-    runs-on: ubuntu-latest
-    if: github.event_name == 'merge_group'
+      packages: ${{ steps.get-packages.outputs.packages }}
     steps:
       - uses: actions/checkout@v4
-      - name: Print branch names
-        run: |
-            echo "Head ref: ${{ github.event.merge_group.head_ref }}"
-            echo "Base ref: ${{ github.event.merge_group.base_ref }}"
-      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: filter
         with:
-          ref: ${{ github.event.merge_group.base_ref }}
-
-  test-ref-pr:
-    runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request'
-    steps:
-      - uses: actions/checkout@v4
-      - name: Print branch name
+          filters: |
+            aptos:
+              - 'aptos/**'
+            ethereum:
+              - 'ethereum/**'
+      - name: Get list of changed packages
+        id: get-packages
         run: |
-            echo "Base ref: ${{ github.base_ref }}"
+          PACKAGES=$(echo '${{ steps.filter.outputs.changes }}' | jq -c '.')
+          echo "packages=$PACKAGES" | tee -a "$GITHUB_OUTPUT"
+
+  # Test job that runs for each changed package
+  test:
+    needs: changes
+    runs-on: ubuntu
+    if: ${{ needs.changes.outputs.packages != '[]' && needs.changes.outputs.packages != '' }}
+    strategy:
+      fail-fast: false
+      matrix:
+        package: ${{ fromJSON(needs.changes.outputs.packages) }}
+    steps:
+      - name: Run tests for ${{ matrix.package }}
+        run: |
+          # Run your tests here
+          echo "Testing ${{ matrix.package }}"
 
   check-job-results:
     if: always()
-    needs: fromJSON(jobs.changes.outputs.jobs)
+    needs: [changes, test]
     runs-on: ubuntu-latest
     steps:
+      - name: Check
+        run: |
+          if [[ "${{ needs.changes.outputs.packages }}" == "[]" || "${{ needs.changes.outputs.packages }}" == "" ]]; then
+            echo "No test jobs were run because no paths were changed."
+          else
+            echo "Test jobs were run. Checking results..."
+            # Check the result of the test jobs
+            if [[ "${{ needs.test.result }}" == "failure" ]]; then
+              echo "One or more test jobs failed"
+              exit 1
+            else
+              echo "All test jobs succeeded"
+              exit 0
+            fi
+          fi
+
 #      - name: Check job results
 #        id: check-results
 #        run: |
@@ -70,8 +90,8 @@ jobs:
 #            echo "All jobs succeeded or were skipped"
 #            echo "result=success" | tee -a $GITHUB_OUTPUT
 #          fi
-      - name: Error on job failure
-        run: |
-          if [[ "${{ steps.check-results.outputs.result }}" == "failure" ]]; then
-            exit 1
-          fi
+#      - name: Error on job failure
+#        run: |
+#          if [[ "${{ steps.check-results.outputs.result }}" == "failure" ]]; then
+#            exit 1
+#          fi
