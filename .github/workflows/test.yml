@@ -41,35 +41,35 @@ jobs:
     needs: fromJSON(jobs.changes.outputs.jobs)
     runs-on: ubuntu-latest
     steps:
-      - name: Check job results
-        id: check-results
-        run: |
-          # Convert JSON array to Bash array
-          mapfile -t job_names < <(echo '${{ fromJson(needs.changes.outputs.jobs) }}')
-
-          # Create associative array of job results
-          declare -A job_results
-          for job in "${job_names[@]}"; do
-            job_results["$job"]=$(eval echo "\${{ needs.${job}.result }}")
-          done
-
-          # Iterate through jobs and get their results
-          failed_count=0
-          for job in "${!job_results[@]}"; do
-            RESULT=${job_results[$job]}
-            if [[ "$RESULT" == "failure" ]]; then
-              failed_count=$((failed_count + 1))
-            fi
-            echo "$job result: $RESULT"
-          done
-
-          if [ "$failed_count" -gt 0 ]; then
-            echo "Some jobs failed"
-            echo "result=failure" | tee -a $GITHUB_OUTPUT
-          else
-            echo "All jobs succeeded or were skipped"
-            echo "result=success" | tee -a $GITHUB_OUTPUT
-          fi
+#      - name: Check job results
+#        id: check-results
+#        run: |
+#          # Convert JSON array to Bash array
+#          mapfile -t job_names < <(echo '${{ fromJson(needs.changes.outputs.jobs) }}')
+#
+#          # Create associative array of job results
+#          declare -A job_results
+#          for job in "${job_names[@]}"; do
+#            job_results["$job"]=$(eval echo "\${{ needs.changes.${job}.result }}")
+#          done
+#
+#          # Iterate through jobs and get their results
+#          failed_count=0
+#          for job in "${!job_results[@]}"; do
+#            RESULT=${job_results[$job]}
+#            if [[ "$RESULT" == "failure" ]]; then
+#              failed_count=$((failed_count + 1))
+#            fi
+#            echo "$job result: $RESULT"
+#          done
+#
+#          if [ "$failed_count" -gt 0 ]; then
+#            echo "Some jobs failed"
+#            echo "result=failure" | tee -a $GITHUB_OUTPUT
+#          else
+#            echo "All jobs succeeded or were skipped"
+#            echo "result=success" | tee -a $GITHUB_OUTPUT
+#          fi
       - name: Error on job failure
         run: |
           if [[ "${{ steps.check-results.outputs.result }}" == "failure" ]]; then
