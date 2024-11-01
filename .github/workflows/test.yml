@@ -14,6 +14,7 @@ jobs:
         run: |
             echo "Head ref: ${{ github.event.merge_group.head_ref }}"
             echo "Base ref: ${{ github.event.merge_group.base_ref }}"
+            echo "Base ref 2: ${{ github.base_ref }}"
       - uses: actions/checkout@v4
         if: github.event_name == 'merge_group'
         with:
