@@ -26,6 +26,7 @@ jobs:
       - name: Print branch name
         run: |
             echo "Base ref: ${{ github.base_ref }}"
+            exit 1
 
   # Wait and verify job
   wait-and-verify:
