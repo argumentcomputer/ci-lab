@@ -10,7 +10,8 @@ jobs:
     runs-on: gpu-ci
     steps:
       - uses: actions/checkout@v4
+      - run: lsb_release -a
       - name: Test GPU
         run: |
           nvidia-smi
-      - run: which cuda
+          #- run: which cuda
