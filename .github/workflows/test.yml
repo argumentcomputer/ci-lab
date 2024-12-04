@@ -15,5 +15,6 @@ jobs:
         run: nvidia-smi
       - run: |
           sudo apt-get update
+      - run: |
           sudo apt-get install cuda
       - run: which cuda
