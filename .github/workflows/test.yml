@@ -13,3 +13,4 @@ jobs:
       - name: Test GPU
         run: |
           nvidia-smi
+      - run: which cuda
