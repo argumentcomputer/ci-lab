@@ -19,4 +19,5 @@ jobs:
           sudo dpkg -i cuda-keyring_1.1-1_all.deb
           sudo apt-get update
           sudo apt-get -y install cuda-toolkit-12-4
-      - run: which nvcc
+      - run: echo 'PATH=/usr/local/cuda/bin:$PATH' >> $GITHUB_ENV
+      - run: nvcc --version
