@@ -1,38 +1,12 @@
 [package]
-name = "criterion-parser"
+name = "ci-lab"
 version = "0.1.0"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-uno = { git = "https://github.com/samuelburnham/workspace-test", package = "one" }
-two = { git = "https://github.com/samuelburnham/workspace-test" }
-workspace-test = { git = "https://github.com/samuelburnham/workspace-test" }
 
 [dev-dependencies]
-criterion = "0.4"
-anyhow = "1.0"
 
 [features]
-cuda = []
-asm = []
-
-[[bench]]
-name = "fibonacci"
-harness = false
-
-[[bench]]
-name = "bench_test"
-harness = false
-
-[build-dependencies]
-vergen = { version = "8", features = ["build", "git", "gitcl"] }
-
-[profile.dev-ci]
-inherits = "dev"
-# By compiling dependencies with optimizations, performing tests gets much faster.
-opt-level = 3
-lto = "thin"
-incremental = false
-codegen-units = 16
