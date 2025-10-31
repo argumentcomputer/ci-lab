@@ -78,7 +78,6 @@ jobs:
           test: false
       - name: Run bench
         run: |
-          features: "${{ needs.setup.outputs.features }}"
           lake exe ${{ matrix.bench }} | tee out.txt 2>&1
       - name: Comment on successful run
         if: success()
