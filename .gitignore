@@ -1,2 +1,9 @@
-target/
-Cargo.lock
+# Lean
+/.lake
+
+# Rust
+/target
+
+# Nix
+result*
+.direnv/
