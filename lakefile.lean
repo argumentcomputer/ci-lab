@@ -10,3 +10,6 @@ lean_lib «Template» where
 @[default_target]
 lean_exe "template" where
   root := `Main
+
+lean_exe "bench-test" where
+  root := `Benchmarks.Main
