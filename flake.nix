@@ -10,12 +10,19 @@
 
     # Helper: flake-parts for easier outputs
     flake-parts.url = "github:hercules-ci/flake-parts";
+
+    fenix = {
+      url = "github:nix-community/fenix";
+      # Follow lean4-nix nixpkgs so we stay in sync
+      inputs.nixpkgs.follows = "lean4-nix/nixpkgs";
+    };
   };
 
   outputs = inputs @ {
     nixpkgs,
     flake-parts,
     lean4-nix,
+    fenix,
     ...
   }:
     flake-parts.lib.mkFlake {inherit inputs;} {
@@ -31,7 +38,13 @@
         system,
         pkgs,
         ...
-      }: {
+      }: let
+        # Pins the Rust toolchain
+        rustToolchain = fenix.packages.${system}.fromToolchainFile {
+          file = ./rust-toolchain.toml;
+          sha256 = "sha256-2eWc3xVTKqg5wKSHGwt1XoM/kUBC6y3MWfKg74Zn+fY=";
+        };
+      in {
         # Lean overlay
         _module.args.pkgs = import nixpkgs {
           inherit system;
@@ -49,6 +62,7 @@
         devShells.default = pkgs.mkShell {
           packages = with pkgs; [
             lean.lean-all # Includes Lean compiler, lake, stdlib, etc.
+            rustToolchain
           ];
         };
       };
