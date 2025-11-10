@@ -32,13 +32,15 @@ jobs:
           echo "$BENCH_COMMAND"
 
           BENCHES=$(echo $BENCH_COMMAND | awk -F'!benchmark ' '{ print $2 }')
-          echo "BENCHES\n$BENCHES"
+          echo "BENCHES:"
+          echo "$BENCHES"
           JSON=$(echo $BENCHES | jq -R -c 'split(" ")')
 
           #echo "benches<<EOF" >> $GITHUB_OUTPUT
           #echo "$JSON" | tee -a $GITHUB_OUTPUT
           #echo "EOF" >> $GITHUB_OUTPUT
-          echo "JSON\n$JSON"
+          echo "JSON:"
+          echo "$JSON"
 
           echo "benches=$JSON" | tee -a $GITHUB_OUTPUT
 
@@ -82,6 +84,8 @@ jobs:
       - name: Run bench on base branch
         run: |
           lake exe ${{ matrix.bench }}
+          ls
+          ls .lake/benches/*
         working-directory: ${{ github.workspace }}/base
       - name: Checkout PR branch
         uses: actions/checkout@v5
@@ -97,14 +101,17 @@ jobs:
         with:
           lake-package-directory: ${{ github.workspace }}/pr
           test: false
-      - name: Copy base benchmarks into PR for comparison
+      - name: Copy base benchmarks into PR dir for comparison
         run: |
           mkdir -p ${{ github.workspace }}/pr/.lake/benches
           cp -r ${{ github.workspace }}/base/.lake/benches/* ${{ github.workspace }}/pr/.lake/benches
+          ls ${{ github.workspace }}/pr/.lake/benches/*
         working-directory: ${{ github.workspace }}/pr
       - name: Run bench on PR branch and generate comparison report
         run: |
           BENCH_REPORT=1 lake exe ${{ matrix.bench }}
+          ls
+          ls .lake/benches/*
       - name: Build benchmark comment body
         if: success()
         run: |
