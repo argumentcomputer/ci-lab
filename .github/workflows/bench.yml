@@ -92,9 +92,6 @@ jobs:
         with:
           path: ${{ github.workspace }}/pr
           ref: ${{ steps.base-branch.outputs.head_ref }}
-      - name: Get short sha for PR
-        run: |
-          echo "PR_SHORT_SHA=$(git rev-parse HEAD --short)" | tee -a $GITHUB_ENV
         working-directory: ${{ github.workspace }}/pr
       - name: Run `lake build` on PR branch
         uses: leanprover/lean-action@v1
@@ -106,19 +103,27 @@ jobs:
           mkdir -p ${{ github.workspace }}/pr/.lake/benches
           cp -r ${{ github.workspace }}/base/.lake/benches/* ${{ github.workspace }}/pr/.lake/benches
           ls ${{ github.workspace }}/pr/.lake/benches/*
-        working-directory: ${{ github.workspace }}/pr
       - name: Run bench on PR branch and generate comparison report
         run: |
           BENCH_REPORT=1 lake exe ${{ matrix.bench }}
           ls
           ls .lake/benches/*
+        working-directory: ${{ github.workspace }}/pr
+      - name: Get env for PR body
+        if: always()
+        run: |
+          SHORT_SHA_PR=$(git rev-parse HEAD --short)
+          REPO_URL=${{ github.server_url }}/${{ github.repository }}
+          echo "COMMIT_LINK=[$SHORT_SHA_PR]($GH_URL/commit/${{ github.sha }})" | tee -a $GITHUB_ENV
+          echo "WORKFLOW_LINK=[Workflow logs]($GH_URL/actions/runs/${{ github.run_id }})" | tee -a $GITHUB_ENV
+        working-directory: ${{ github.workspace }}/pr
       - name: Build benchmark comment body
         if: success()
         run: |
           {
-            echo '# Benchmark results for `${{ matrix.bench }}` at [${{ env.PR_SHORT_SHA }}](${{ github.repository }}/commit/${{ github.sha }}';
+            echo '## Benchmark for `${{ matrix.bench }}` at ${{ env.COMMIT_LINK }}';
             cat benchmark-report-*.md;
-            echo '[Workflow logs](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})';
+            echo '${{ env.WORKFLOW_LINK }}';
           } > ${{ github.workspace }}/comment-body.md
         working-directory: ${{ github.workspace }}/pr
       - name: Comment on successful run
@@ -133,6 +138,6 @@ jobs:
         with:
           issue-number: ${{ github.event.issue.number }}
           body: |
-            ## Benchmark action for `${{ matrix.bench }}` at [${{ env.PR_SHORT_SHA }}](${{ github.repository }}/commit/${{ github.sha }} failed :x:
+            ## Benchmark for `${{ matrix.bench }}` at ${{ env.COMMIT_LINK }} failed :x:
 
-            [Workflow logs](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})
+            [Workflow logs](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
