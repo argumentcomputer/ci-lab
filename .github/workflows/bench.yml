@@ -32,6 +32,8 @@ jobs:
           echo "$BENCH_COMMAND"
 
           BENCHES=$(echo $BENCH_COMMAND | awk -F'!benchmark ' '{ print $2 }')
+          # Set default benches to run if none specified
+          BENCHES=${BENCHES:-"template"}
           echo "BENCHES:"
           echo "$BENCHES"
           JSON=$(echo $BENCHES | jq -R -c 'split(" ")')
