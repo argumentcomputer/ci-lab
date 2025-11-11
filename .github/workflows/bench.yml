@@ -92,7 +92,6 @@ jobs:
         with:
           path: ${{ github.workspace }}/pr
           ref: ${{ steps.base-branch.outputs.head_ref }}
-        working-directory: ${{ github.workspace }}/pr
       - name: Run `lake build` on PR branch
         uses: leanprover/lean-action@v1
         with:
