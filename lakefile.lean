@@ -1,7 +1,7 @@
 import Lake
 open Lake DSL
 
-require ix from git "https://github.com/argumentcomputer/ix" @ "3c39a15dd9e92b4e46b8b53bb4e2c5438a428d6d"
+require ix from git "https://github.com/argumentcomputer/ix" @ "71cf57f4d1435dd0ed60bdcf3eb45677acbf839e"
 
 package "template" where
   version := v!"0.1.0"

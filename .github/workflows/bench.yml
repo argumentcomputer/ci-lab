@@ -110,11 +110,13 @@ jobs:
         if: success()
         run: |
           {
-            echo '## Benchmark for `${{ matrix.bench }}` at ${{ env.COMMIT_LINK }}';
-            echo;
-            cat benchmark-report-*.md;
-            echo;
-            echo '${{ env.WORKFLOW_LINK }}';
+            echo "## Benchmark for \`${{ matrix.bench }}\` at ${{ env.COMMIT_LINK }}";
+            echo "";
+            for file in benchmark-report-*.md; do
+              cat "$file"
+              echo ""
+            done
+            echo "${{ env.WORKFLOW_LINK }}";
           } > ${{ github.workspace }}/comment-body.md
         working-directory: ${{ github.workspace }}/pr
       - name: Comment on successful run
