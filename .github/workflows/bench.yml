@@ -45,7 +45,9 @@ jobs:
           echo "benches=$JSON" | tee -a $GITHUB_OUTPUT
 
           # Can't persist env vars between jobs, so we pass them as an output and set them in the next job
-          echo "env-vars=$(tail -n +2 comment.txt)" | tee -a $GITHUB_OUTPUT
+          echo "env-vars<<EOF" >> $GITHUB_OUTPUT
+          echo "$(tail -n +2 comment.txt)" | tee -a $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
 
   benchmark:
     needs: [ setup ]
@@ -57,12 +59,8 @@ jobs:
     steps:
       - name: Set env vars
         run: |
-          # Trims newlines that may arise from `$GITHUB_OUTPUT`
-          #for var in ${{ inputs.default-env }}
-          #do
-          #  echo "$(echo $var | tr -d '\n')" | tee -a $GITHUB_ENV
-          #done
           # Overrides default env vars with those specified in the `issue_comment` input if identically named
+          # Trims newlines that may arise from `$GITHUB_OUTPUT`
           for var in ${{ needs.setup.outputs.env-vars }}
           do
             echo "$(echo $var | tr -d '\n')" | tee -a $GITHUB_ENV

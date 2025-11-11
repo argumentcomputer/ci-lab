@@ -9,6 +9,12 @@ def addBench := bgroup "Add" [
   benchIO "add 10" add 10
 ] { report := false }
 
+def addBench' := bgroup "Add'" [
+  benchIO "add' 1" add 1,
+  benchIO "add' 10" add 10
+]
+
 def main : IO Unit := do
   --IO.println "hello"
   let _result ← addBench
+  let _result ← addBench'
