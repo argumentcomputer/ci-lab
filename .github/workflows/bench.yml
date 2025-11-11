@@ -111,7 +111,7 @@ jobs:
       - name: Get env for PR body
         if: always()
         run: |
-          SHORT_SHA_PR=$(git rev-parse HEAD --short)
+          SHORT_SHA_PR=$(git rev-parse --short HEAD)
           REPO_URL=${{ github.server_url }}/${{ github.repository }}
           echo "COMMIT_LINK=[$SHORT_SHA_PR]($GH_URL/commit/${{ github.sha }})" | tee -a $GITHUB_ENV
           echo "WORKFLOW_LINK=[Workflow logs]($GH_URL/actions/runs/${{ github.run_id }})" | tee -a $GITHUB_ENV
