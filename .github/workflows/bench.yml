@@ -113,15 +113,17 @@ jobs:
         run: |
           SHORT_SHA_PR=$(git rev-parse --short HEAD)
           REPO_URL=${{ github.server_url }}/${{ github.repository }}
-          echo "COMMIT_LINK=[$SHORT_SHA_PR]($GH_URL/commit/${{ github.sha }})" | tee -a $GITHUB_ENV
-          echo "WORKFLOW_LINK=[Workflow logs]($GH_URL/actions/runs/${{ github.run_id }})" | tee -a $GITHUB_ENV
+          echo "COMMIT_LINK=[$SHORT_SHA_PR]($REPO_URL/commit/${{ github.sha }})" | tee -a $GITHUB_ENV
+          echo "WORKFLOW_LINK=[Workflow logs]($REPO_URL/actions/runs/${{ github.run_id }})" | tee -a $GITHUB_ENV
         working-directory: ${{ github.workspace }}/pr
       - name: Build benchmark comment body
         if: success()
         run: |
           {
             echo '## Benchmark for `${{ matrix.bench }}` at ${{ env.COMMIT_LINK }}';
+            echo;
             cat benchmark-report-*.md;
+            echo;
             echo '${{ env.WORKFLOW_LINK }}';
           } > ${{ github.workspace }}/comment-body.md
         working-directory: ${{ github.workspace }}/pr
