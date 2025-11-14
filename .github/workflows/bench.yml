@@ -106,7 +106,7 @@ jobs:
           BENCH_DIR_PR=${{ github.workspace }}/pr/.lake/benches
           BENCH_DIR_BASE=${{ github.workspace }}/base/.lake/benches
           mkdir -p $BENCH_DIR_PR
-          [ -d $BENCH_DIR_BASE ] && cp -r $BENCH_DIR_BASE/* $BENCH_DIR_PR
+          [ -d "$BENCH_DIR_BASE" ] && cp -r $BENCH_DIR_BASE/. $BENCH_DIR_PR/
           ls $BENCH_DIR_PR/*
       - name: Run bench on PR branch and generate comparison report
         run: |
