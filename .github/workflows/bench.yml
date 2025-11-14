@@ -155,18 +155,18 @@ jobs:
       pull-requests: write
     steps:
       - name: Download benchmark report
-        if: ${{ needs.benchmark.result == "success" }}
+        if: needs.benchmark.result == 'success'
         uses: actions/download-artifact@v6
         with:
           name: bench-comment-${{ matrix.bench }}
       - name: Comment on successful run
-        if: ${{ needs.benchmark.result == "success" }}
+        if: needs.benchmark.result == 'success'
         uses: peter-evans/create-or-update-comment@v5
         with:
           issue-number: ${{ github.event.issue.number }}
           body-path: 'comment-body.md'
       - name: Comment on failing run
-        if: ${{ needs.benchmark.result == "failure" }}
+        if: needs.benchmark.result == 'failure'
         uses: peter-evans/create-or-update-comment@v5
         with:
           issue-number: ${{ github.event.issue.number }}
