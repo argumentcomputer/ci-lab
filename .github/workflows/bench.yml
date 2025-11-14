@@ -58,9 +58,6 @@ jobs:
       matrix:
         # Runs a job for each benchmark specified in the `issue_comment` input
         bench: ${{ fromJSON(needs.setup.outputs.benches) }}
-    outputs:
-      benches: ${{ toJSON(matrix.bench) }}
-      commit-link: ${{ steps.comment-vars.outputs.commit-link }}
     steps:
       - name: Set env vars
         run: |
@@ -112,66 +109,50 @@ jobs:
         run: |
           BENCH_REPORT=1 lake exe ${{ matrix.bench }}
         working-directory: ${{ github.workspace }}/pr
-      - name: Export benchmark comment env vars
+      - name: Get env for PR body
         if: always()
-        id: comment-vars
         run: |
           SHORT_SHA_PR=$(git rev-parse --short HEAD)
           REPO_URL=${{ github.server_url }}/${{ github.repository }}
-          COMMIT_LINK="[\`$SHORT_SHA_PR\`]($REPO_URL/commit/${{ github.sha }})"
-          WORKFLOW_LINK="[Workflow logs]($REPO_URL/actions/runs/${{ github.run_id }})"
-
-          echo "commit-link=$COMMIT_LINK" | tee -a $GITHUB_OUTPUT
-          echo "workflow-link=$WORKFLOW_LINK" | tee -a $GITHUB_OUTPUT
+          echo "COMMIT_LINK=[\`$SHORT_SHA_PR\`]($REPO_URL/commit/${{ github.sha }})" | tee -a $GITHUB_ENV
+          echo "WORKFLOW_LINK=[Workflow logs]($REPO_URL/actions/runs/${{ github.run_id }})" | tee -a $GITHUB_ENV
         working-directory: ${{ github.workspace }}/pr
+      - name: Generate token to write PR comment
+      - uses: actions/create-github-app-token@v2
+        if: always()
+        id: app-token
+        with:
+          app-id: ${{ secrets.TOKEN_APP_ID }}
+          private-key: ${{ secrets.TOKEN_APP_PRIVATE_KEY }}
+          permission-issues: write
+          permission-pull-requests: write
       - name: Build benchmark comment body
         if: success()
         run: |
           {
-            echo '## Benchmark for `${{ matrix.bench }}` at ${{ steps.comment-vars.outputs.commit-link }}';
+            echo '## Benchmark for `${{ matrix.bench }}` at ${{ env.COMMIT_LINK }}';
             echo "";
             for file in benchmark-report-*.md; do
               cat "$file"
               echo ""
             done
-            echo "${{ steps.comment-vars.outputs.workflow-link }}";
+            echo "${{ env.WORKFLOW_LINK }}";
           } > ${{ github.workspace }}/comment-body.md
         working-directory: ${{ github.workspace }}/pr
-      - name: Upload benchmark report
-        if: success()
-        uses: actions/upload-artifact@v5
-        with:
-          name: bench-comment-${{ matrix.bench }}
-          path: comment-body.md
-
-  write-comment:
-    needs: [ benchmark ]
-    if: always()
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        bench: ${{ fromJSON(needs.benchmark.outputs.benches) }}
-    permissions:
-      issues: write
-      pull-requests: write
-    steps:
-      - name: Download benchmark report
-        if: needs.benchmark.result == 'success'
-        uses: actions/download-artifact@v6
-        with:
-          name: bench-comment-${{ matrix.bench }}
       - name: Comment on successful run
-        if: needs.benchmark.result == 'success'
+        if: success()
         uses: peter-evans/create-or-update-comment@v5
         with:
+          token: ${{ steps.app-token.outputs.token }}
           issue-number: ${{ github.event.issue.number }}
           body-path: 'comment-body.md'
       - name: Comment on failing run
-        if: needs.benchmark.result == 'failure'
+        if: failure()
         uses: peter-evans/create-or-update-comment@v5
         with:
+          token: ${{ steps.app-token.outputs.token }}
           issue-number: ${{ github.event.issue.number }}
           body: |
-            ## Benchmark for `${{ matrix.bench }}` at ${{ needs.benchmark.outputs.commit-link }} failed :x:
+            ## Benchmark for `${{ matrix.bench }}` at ${{ env.COMMIT_LINK }} failed :x:
 
             [Workflow logs](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
