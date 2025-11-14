@@ -136,6 +136,7 @@ jobs:
             done
             echo "${{ steps.comment-vars.outputs.workflow-link }}";
           } > ${{ github.workspace }}/comment-body.md
+        working-directory: ${{ github.workspace }}/pr
       - name: Upload benchmark report
         if: success()
         uses: actions/upload-artifact@v5
