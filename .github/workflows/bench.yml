@@ -118,8 +118,8 @@ jobs:
         run: |
           SHORT_SHA_PR=$(git rev-parse --short HEAD)
           REPO_URL=${{ github.server_url }}/${{ github.repository }}
-          COMMIT_LINK=[\`$SHORT_SHA_PR\`]($REPO_URL/commit/${{ github.sha }})
-          WORKFLOW_LINK=[Workflow logs]($REPO_URL/actions/runs/${{ github.run_id }})
+          COMMIT_LINK="[\`$SHORT_SHA_PR\`]($REPO_URL/commit/${{ github.sha }})"
+          WORKFLOW_LINK="[Workflow logs]($REPO_URL/actions/runs/${{ github.run_id }})"
 
           echo "commit-link=$COMMIT_LINK" | tee -a $GITHUB_OUTPUT
           echo "workflow-link=$WORKFLOW_LINK" | tee -a $GITHUB_OUTPUT
