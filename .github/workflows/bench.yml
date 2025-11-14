@@ -5,6 +5,11 @@ on:
   issue_comment:
     types: [created]
 
+permissions:
+  contents: read
+  issues: read
+  pull_requests: read
+
 concurrency:
   group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
   cancel-in-progress: true
@@ -53,6 +58,9 @@ jobs:
       matrix:
         # Runs a job for each benchmark specified in the `issue_comment` input
         bench: ${{ fromJSON(needs.setup.outputs.benches) }}
+    outputs:
+      benches: ${{ toJSON(matrix.bench) }}
+      commit-link: ${{ steps.comment-vars.outputs.commit-link }}
     steps:
       - name: Set env vars
         run: |
@@ -98,45 +106,71 @@ jobs:
           BENCH_DIR_PR=${{ github.workspace }}/pr/.lake/benches
           BENCH_DIR_BASE=${{ github.workspace }}/base/.lake/benches
           mkdir -p $BENCH_DIR_PR
-          [-d $BENCH_DIR_BASE ] && cp -r $BENCH_DIR_BASE/* $BENCH_DIR_PR
+          [ -d $BENCH_DIR_BASE ] && cp -r $BENCH_DIR_BASE/* $BENCH_DIR_PR
           ls $BENCH_DIR_PR/*
       - name: Run bench on PR branch and generate comparison report
         run: |
           BENCH_REPORT=1 lake exe ${{ matrix.bench }}
         working-directory: ${{ github.workspace }}/pr
-      - name: Get env for PR body
+      - name: Export benchmark comment env vars
         if: always()
+        id: comment-vars
         run: |
           SHORT_SHA_PR=$(git rev-parse --short HEAD)
           REPO_URL=${{ github.server_url }}/${{ github.repository }}
-          echo "COMMIT_LINK=[\`$SHORT_SHA_PR\`]($REPO_URL/commit/${{ github.sha }})" | tee -a $GITHUB_ENV
-          echo "WORKFLOW_LINK=[Workflow logs]($REPO_URL/actions/runs/${{ github.run_id }})" | tee -a $GITHUB_ENV
+          COMMIT_LINK=[\`$SHORT_SHA_PR\`]($REPO_URL/commit/${{ github.sha }})
+          WORKFLOW_LINK=[Workflow logs]($REPO_URL/actions/runs/${{ github.run_id }})
+
+          echo "commit-link=$COMMIT_LINK" | tee -a $GITHUB_OUTPUT
+          echo "workflow-link=$WORKFLOW_LINK" | tee -a $GITHUB_OUTPUT
         working-directory: ${{ github.workspace }}/pr
       - name: Build benchmark comment body
         if: success()
         run: |
           {
-            echo '## Benchmark for `${{ matrix.bench }}` at ${{ env.COMMIT_LINK }}';
+            echo '## Benchmark for `${{ matrix.bench }}` at ${{ steps.comment-vars.outputs.commit-link }}';
             echo "";
             for file in benchmark-report-*.md; do
               cat "$file"
               echo ""
             done
-            echo "${{ env.WORKFLOW_LINK }}";
+            echo "${{ steps.comment-vars.outputs.workflow-link }}";
           } > ${{ github.workspace }}/comment-body.md
-        working-directory: ${{ github.workspace }}/pr
-      - name: Comment on successful run
+      - name: Upload benchmark report
         if: success()
+        uses: actions/upload-artifact@v5
+        with:
+          name: bench-comment-${{ matrix.bench }}
+          path: comment-body.md
+
+  write-comment:
+    needs: [ benchmark ]
+    if: always()
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        bench: ${{ fromJSON(needs.benchmark.outputs.benches) }}
+    permissions:
+      issues: write
+      pull_requests: write
+    steps:
+      - name: Download benchmark report
+        if: ${{ needs.benchmark.result == "success" }}
+        uses: actions/download-artifact@v6
+        with:
+          name: bench-comment-${{ matrix.bench }}
+      - name: Comment on successful run
+        if: ${{ needs.benchmark.result == "success" }}
         uses: peter-evans/create-or-update-comment@v5
         with:
           issue-number: ${{ github.event.issue.number }}
           body-path: 'comment-body.md'
       - name: Comment on failing run
-        if: failure()
+        if: ${{ needs.benchmark.result == "failure" }}
         uses: peter-evans/create-or-update-comment@v5
         with:
           issue-number: ${{ github.event.issue.number }}
           body: |
-            ## Benchmark for `${{ matrix.bench }}` at ${{ env.COMMIT_LINK }} failed :x:
+            ## Benchmark for `${{ matrix.bench }}` at ${{ needs.benchmark.outputs.commit-link }} failed :x:
 
             [Workflow logs](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
