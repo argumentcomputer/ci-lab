@@ -77,7 +77,13 @@ jobs:
           test: false
       - name: Run bench on base branch
         run: |
-          lake exe ${{ matrix.bench }}
+          if $(lake run get-exe-targets | grep -q ${{ matrix.bench }}); then
+            lake exe ${{ matrix.bench }}
+          else
+            # Create empty benches dir so the copying step succeeds
+            mkdir -p ${{ github.workspace }}/base/.lake/benches
+            echo "No matching bench target found on base branch"
+          fi
         working-directory: ${{ github.workspace }}/base
       - name: Checkout PR branch
         uses: actions/checkout@v5

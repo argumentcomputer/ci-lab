@@ -15,3 +15,11 @@ lean_exe "template" where
 
 lean_exe "bench-test" where
   root := `Benchmarks.Main
+
+script "get-exe-targets" := do
+  let pkg ← getRootPackage
+  let exeTargets := pkg.configTargets LeanExe.configKind
+  for tgt in exeTargets do
+    IO.println <| tgt.name.toString |>.stripPrefix "«" |>.stripSuffix "»"
+  return 0
+
