@@ -13,7 +13,7 @@ lean_lib «Template» where
 lean_exe "template" where
   root := `Main
 
-lean_exe "bench-test" where
+lean_exe "bench-test-new" where
   root := `Benchmarks.Main
 
 script "get-exe-targets" := do

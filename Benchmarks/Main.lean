@@ -1,12 +1,12 @@
 import Ix.Benchmark.Bench
 
-def add' (input: Nat): IO Nat := do
-  pure $ input + 1
+def sub (input: Nat): IO Nat := do
+  pure $ input - 1
 
-def addBench' := bgroup "Add'" [
-  benchIO "add' 1" add' 1,
-  benchIO "add' 10" add' 10
+def subBench := bgroup "Sub" [
+  benchIO "sub 1" sub 1,
+  benchIO "sub 10" sub 10
 ] { oneShot := true }
 
 def main : IO Unit := do
-  let _result ← addBench'
+  let _result ← subBench
