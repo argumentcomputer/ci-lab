@@ -124,8 +124,6 @@ jobs:
         with:
           app-id: ${{ secrets.TOKEN_APP_ID }}
           private-key: ${{ secrets.TOKEN_APP_PRIVATE_KEY }}
-          permission-issues: write
-          permission-pull-requests: write
       - name: Build benchmark comment body
         if: success()
         run: |
