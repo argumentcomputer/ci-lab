@@ -6,7 +6,7 @@ def add' (input: Nat): IO Nat := do
 def addBench' := bgroup "Add'" [
   benchIO "add' 1" add' 1,
   benchIO "add' 10" add' 10
-]
+] { oneShot := true }
 
 def main : IO Unit := do
   let _result ← addBench'
