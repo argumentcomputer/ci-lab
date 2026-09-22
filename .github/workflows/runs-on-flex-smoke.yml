@@ -14,7 +14,7 @@ concurrency:
 jobs:
   smoke:
     name: Verify r8i.large runner
-    runs-on: runs-on=${{ github.run_id }}/family=r8i.large/cpu=2/ram=16/image=ubuntu24-full-x64/spot=false
+    runs-on: runs-on=${{ github.run_id }}/family=r8i.large/cpu=2/ram=16/image=ubuntu24-full-x64/spot=true
     timeout-minutes: 5
     defaults:
       run:
