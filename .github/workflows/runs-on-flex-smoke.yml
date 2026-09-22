@@ -13,8 +13,8 @@ concurrency:
 
 jobs:
   smoke:
-    name: Verify c7a.large runner
-    runs-on: runs-on=${{ github.run_id }}/family=c7a.large/cpu=2/ram=4/image=ubuntu24-full-x64/spot=false
+    name: Verify r8i.large runner
+    runs-on: runs-on=${{ github.run_id }}/family=r8i.large/cpu=2/ram=16/image=ubuntu24-full-x64/spot=false
     timeout-minutes: 5
     defaults:
       run:
@@ -38,4 +38,4 @@ jobs:
             --header "X-aws-ec2-metadata-token: $imds_token" \
             http://169.254.169.254/latest/meta-data/instance-type)
           printf 'EC2 instance type: %s\n' "$instance_type"
-          test "$instance_type" = c7a.large
+          test "$instance_type" = r8i.large
