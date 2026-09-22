@@ -1,0 +1,41 @@
+name: RunsOn Flex smoke test
+
+on:
+  push:
+    branches:
+      - ci/runs-on-flex-smoke
+
+permissions: {}
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  smoke:
+    name: Verify c7a.large runner
+    runs-on: runs-on=${{ github.run_id }}/family=c7a.large/cpu=2/ram=4/image=ubuntu24-full-x64/spot=false
+    timeout-minutes: 5
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Verify runner architecture and CPU count
+        run: |
+          uname -a
+          lscpu
+          free -h
+          test "$(uname -m)" = x86_64
+          test "$(nproc --all)" -eq 2
+
+      - name: Verify EC2 instance type
+        run: |
+          imds_token=$(curl --fail --silent --show-error --max-time 5 \
+            --request PUT \
+            --header 'X-aws-ec2-metadata-token-ttl-seconds: 60' \
+            http://169.254.169.254/latest/api/token)
+          instance_type=$(curl --fail --silent --show-error --max-time 5 \
+            --header "X-aws-ec2-metadata-token: $imds_token" \
+            http://169.254.169.254/latest/meta-data/instance-type)
+          printf 'EC2 instance type: %s\n' "$instance_type"
+          test "$instance_type" = c7a.large
